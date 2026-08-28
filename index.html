@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>超音波データ通信 (18kHz-20kHz)</title>
+  <style>
+    body { font-family: sans-serif; max-width: 640px; margin: 20px auto; padding: 15px; background: #f4f6f8; }
+    .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    textarea { width: 100%; height: 60px; margin-bottom: 10px; box-sizing: border-box; font-size: 16px; }
+    button { padding: 12px 20px; font-size: 15px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; color: white; margin-right: 8px; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+    .btn-send { background: #28a745; }
+    .btn-listen { background: #007bff; }
+    .btn-cancel { background: #dc3545; }
+    .result { font-size: 26px; font-weight: bold; color: #007bff; padding: 12px; background: #e8f4ff; border-radius: 6px; min-height: 36px; word-break: break-all; margin-top: 10px; text-align: center; }
+    .log { font-family: monospace; font-size: 11px; color: #333; background: #eee; padding: 8px; border-radius: 4px; margin-top: 10px; height: 180px; overflow-y: auto; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+
+  <h2>🦇 超音波データ通信 (非可聴域)</h2>
+
+  <div class="card">
+    <h3>1. 送信設定</h3>
+    <textarea id="inputText" placeholder="送信文字">超音波で送信するメッセージ</textarea>
+    <div>
+      <button class="btn-send" id="btnPlay">🔊 超音波で送信 (18.5kHz〜19.5kHz)</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>2. 受信設定</h3>
+    <div>
+      <button class="btn-listen" id="btnListen">🎤 マイクで受信開始</button>
+      <button class="btn-cancel" id="btnCancel" disabled>⏹️ キャンセル</button>
+    </div>
+    <div id="status" style="margin-top:10px; font-weight:bold; color:#d9534f;">待機中</div>
+    <div id="outputText" class="result">---</div>
+    <div id="log" class="log">ログがここに表示されます</div>
+  </div>
+
+<script>
+// 人の耳に聞こえにくい「超音波帯域」の周波数設定
+const FREQ_0  = 18500; // Bit 0
+const FREQ_1  = 19000; // Bit 1
+const FREQ_ST = 19500; // パイロット（スタート音）
+
+let audioCtx = null;
+function getCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function log(msg) {
+  const el = document.getElementById('log');
+  el.textContent += "\n" + msg;
+  el.scrollTop = el.scrollHeight;
+}
+
+// --- ハミング符号 (7,4) ---
+function encodeHamming(d4) {
+  const d = [(d4>>3)&1, (d4>>2)&1, (d4>>1)&1, d4&1];
+  return (d[0]<<6)|(d[1]<<5)|(d[2]<<4)|(d[3]<<3)|((d[0]^d[1]^d[3])<<2)|((d[0]^d[2]^d[3])<<1)|(d[1]^d[2]^d[3]);
+}
+function decodeHamming(c7) {
+  const b = [];
+  for (let i = 6; i >= 0; i--) b.push((c7 >> i) & 1);
+  const s1 = b[0] ^ b[1] ^ b[3] ^ b[4];
+  const s2 = b[0] ^ b[2] ^ b[3] ^ b[5];
+  const s3 = b[1] ^ b[2] ^ b[3] ^ b[6];
+  const err = (s1 << 2) | (s2 << 1) | s3;
+  if (err >= 1 && err <= 7) b[err - 1] ^= 1;
+  return (b[0]<<3) | (b[1]<<2) | (b[2]<<1) | b[3];
+}
+function encodeByteTo14Bits(byteVal) {
+  const high = encodeHamming((byteVal >> 4) & 0x0F);
+  const low  = encodeHamming(byteVal & 0x0F);
+  let bits = [];
+  for (let i = 6; i >= 0; i--) bits.push((high >> i) & 1);
+  for (let i = 6; i >= 0; i--) bits.push((low >> i) & 1);
+  return bits;
+}
+
+// 送信機能
+document.getElementById('btnPlay').onclick = () => {
+  const ctx = getCtx();
+  const text = document.getElementById('inputText').value;
+  if (!text) return;
+
+  const bytes = new TextEncoder().encode(text);
+  let rawBits = [];
+  
+  // ヘッダー（データ長）
+  const headerBits = encodeByteTo14Bits(bytes.length & 0x7F);
+  headerBits.forEach(b => { rawBits.push(b); rawBits.push(b); rawBits.push(b); }); // 3重化
+
+  bytes.forEach(b => {
+    const bits = encodeByteTo14Bits(b);
+    bits.forEach(bit => { rawBits.push(bit); rawBits.push(bit); rawBits.push(bit); });
+  });
+
+  const tBit = 0.080; // 80ms/bit
+  const now = ctx.currentTime + 0.1;
+
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  // パイロット音 (19.5kHz)
+  osc.frequency.setValueAtTime(FREQ_ST, now);
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(0.3, now + 0.03);
+
+  let t = now + 0.3;
+  rawBits.forEach((bit) => {
+    osc.frequency.setValueAtTime(bit === 1 ? FREQ_1 : FREQ_0, t);
+    t += tBit;
+  });
+
+  gain.gain.setValueAtTime(0.3, t - 0.02);
+  gain.gain.linearRampToValueAtTime(0, t);
+
+  osc.start(now);
+  osc.stop(t);
+  log(`超音波送信開始 (${rawBits.length} ビット)`);
+};
+
+// 受信機能
+let receiveLoopId = null;
+let mediaStream = null;
+
+document.getElementById('btnListen').onclick = async () => {
+  document.getElementById('btnListen').disabled = true;
+  document.getElementById('btnCancel').disabled = false;
+  
+  try {
+    mediaStream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+    });
+  } catch(e) {
+    log('マイク不可: ' + e.message);
+    return;
+  }
+
+  const ctx = getCtx();
+  const source = ctx.createMediaStreamSource(mediaStream);
+  const analyser = ctx.createAnalyser();
+  analyser.fftSize = 2048; // 周波数分解能を高める
+  source.connect(analyser);
+
+  const binSize = ctx.sampleRate / analyser.fftSize;
+  const b0  = Math.round(FREQ_0 / binSize);
+  const b1  = Math.round(FREQ_1 / binSize);
+  const bST = Math.round(FREQ_ST / binSize);
+
+  const data = new Uint8Array(analyser.frequencyBinCount);
+  let state = 'idle';
+  let bitStream = [];
+  let samples = [];
+
+  receiveLoopId = setInterval(() => {
+    analyser.getByteFrequencyData(data);
+    const p0 = data[b0], p1 = data[b1], pST = data[bST];
+
+    if (state === 'idle') {
+      if (pST > 40) { // パイロット信号検知
+        state = 'receiving';
+        bitStream = [];
+        samples = [];
+        log('超音波パイロット音(19.5kHz)を検出。受信開始');
+      }
+    } else if (state === 'receiving') {
+      samples.push(p1 > p0 ? 1 : 0);
+
+      if (samples.length >= 3) {
+        const sum = samples.reduce((a,b)=>a+b,0);
+        bitStream.push(sum >= 2 ? 1 : 0);
+        samples = [];
+
+        document.getElementById('status').textContent = `受信中... ${bitStream.length} bits`;
+
+        if (bitStream.length >= 42) {
+          const dataLen = decodeByte(bitStream.slice(0, 42));
+          const totalBits = (1 + dataLen) * 42;
+
+          if (dataLen > 0 && bitStream.length >= totalBits) {
+            decodePayload(bitStream, dataLen);
+            stopReceive();
+          }
+        }
+      }
+    }
+  }, 80 / 3);
+};
+
+function decodeByte(bits42) {
+  let voted = [];
+  for (let i = 0; i < bits42.length; i += 3) {
+    voted.push((bits42[i] + bits42[i+1] + bits42[i+2]) >= 2 ? 1 : 0);
+  }
+  const high = voted.slice(0, 7).reduce((acc, b) => (acc << 1) | b, 0);
+  const low = voted.slice(7, 14).reduce((acc, b) => (acc << 1) | b, 0);
+  return (decodeHamming(high) << 4) | decodeHamming(low);
+}
+
+function decodePayload(bitStream, len) {
+  let bytes = [];
+  for (let i = 1; i <= len; i++) {
+    const chunk = bitStream.slice(i * 42, (i + 1) * 42);
+    if (chunk.length < 42) break;
+    bytes.push(decodeByte(chunk));
+  }
+  const text = new TextDecoder().decode(new Uint8Array(bytes));
+  document.getElementById('outputText').textContent = text;
+  log(`✅ 超音波デコード成功: "${text}"`);
+}
+
+function stopReceive() {
+  if (receiveLoopId) clearInterval(receiveLoopId);
+  if (mediaStream) mediaStream.getTracks().forEach(t => t.stop());
+  document.getElementById('btnListen').disabled = false;
+  document.getElementById('btnCancel').disabled = true;
+}
+document.getElementById('btnCancel').onclick = stopReceive;
+</script>
+</body>
+</html>

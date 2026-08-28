@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎵 音波通信 - 声学数据传输</title>
+    <title>🎵 音響通信 - 音波データ伝送</title>
     <style>
-        /* ===== 全局重置 & 主题 ===== */
+        /* ===== リセット & テーマ ===== */
         * {
             margin: 0;
             padding: 0;
@@ -57,7 +57,7 @@
             border: 1px solid rgba(0, 180, 255, 0.15);
             margin-left: auto;
         }
-        /* ===== 网格布局 ===== */
+        /* ===== グリッドレイアウト ===== */
         .grid-2 {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -72,7 +72,7 @@
                 padding: 20px;
             }
         }
-        /* ===== 卡片 ===== */
+        /* ===== カード ===== */
         .card {
             background: rgba(12, 20, 34, 0.7);
             border-radius: 24px;
@@ -96,7 +96,7 @@
         .card-title .icon {
             font-size: 22px;
         }
-        /* ===== 表单控件 ===== */
+        /* ===== フォーム要素 ===== */
         .form-group {
             margin-bottom: 16px;
         }
@@ -231,7 +231,7 @@
             width: 100%;
             justify-content: center;
         }
-        /* ===== 文件上传 ===== */
+        /* ===== ファイルアップロード ===== */
         .file-upload {
             position: relative;
             display: inline-block;
@@ -246,7 +246,7 @@
         .file-upload .btn {
             pointer-events: none;
         }
-        /* ===== 状态 & 信息 ===== */
+        /* ===== ステータスバー ===== */
         .status-bar {
             display: flex;
             flex-wrap: wrap;
@@ -295,7 +295,7 @@
             border-radius: 4px;
             transition: width 0.15s ease;
         }
-        /* ===== 图片预览 ===== */
+        /* ===== 画像プレビュー ===== */
         .image-preview {
             margin-top: 12px;
             border-radius: 16px;
@@ -318,7 +318,7 @@
             color: #5a6f8a;
             font-size: 14px;
         }
-        /* ===== 接收结果显示 ===== */
+        /* ===== 受信結果表示 ===== */
         .received-content {
             background: rgba(0, 0, 0, 0.25);
             border-radius: 16px;
@@ -337,7 +337,7 @@
             color: #5a6f8a;
             font-style: italic;
         }
-        /* ===== 设置面板 ===== */
+        /* ===== 設定パネル ===== */
         .settings-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -396,7 +396,7 @@
             display: inline-block;
             text-align: right;
         }
-        /* ===== 日志 ===== */
+        /* ===== ログエリア ===== */
         .log-area {
             background: rgba(0, 0, 0, 0.4);
             border-radius: 14px;
@@ -430,7 +430,7 @@
         .log-area .log-entry .tag-warn {
             color: #ffb347;
         }
-        /* ===== 滚动条 ===== */
+        /* ===== スクロールバー ===== */
         ::-webkit-scrollbar {
             width: 5px;
             height: 5px;
@@ -446,7 +446,7 @@
         ::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.2);
         }
-        /* ===== 响应式微调 ===== */
+        /* ===== レスポンシブ ===== */
         @media (max-width: 600px) {
             .app {
                 padding: 16px;
@@ -467,7 +467,7 @@
                 font-size: 22px;
             }
         }
-        /* 闪烁动画 */
+        /* 点滅アニメーション */
         @keyframes pulse-dot {
             0%,
             100% {
@@ -516,73 +516,73 @@
 
     <div class="app" id="app">
         <h1>
-            🎵 音波通信
-            <small>声学数据传输</small>
-            <span class="badge">v1.0 · 纠错+抗噪</span>
+            🎵 音響通信
+            <small>音波データ伝送</small>
+            <span class="badge">v1.0 · 誤り訂正＋耐ノイズ</span>
         </h1>
 
         <div class="grid-2">
-            <!-- ===== 左：发送端 ===== -->
+            <!-- ===== 左：送信側 ===== -->
             <div class="card">
                 <div class="card-title">
-                    <span class="icon">📤</span> 发送端
-                    <span style="margin-left:auto;font-size:12px;font-weight:400;color:#6a8aaa;" id="sendStatus">就绪</span>
+                    <span class="icon">📤</span> 送信側
+                    <span style="margin-left:auto;font-size:12px;font-weight:400;color:#6a8aaa;" id="sendStatus">準備完了</span>
                 </div>
 
                 <div class="form-group">
-                    <label>📝 文字内容</label>
-                    <textarea id="textInput" placeholder="输入要发送的文字…">你好，世界！Hello World! 🚀</textarea>
+                    <label>📝 テキスト内容</label>
+                    <textarea id="textInput" placeholder="送信するテキストを入力…">こんにちは、世界！Hello World! 🚀</textarea>
                 </div>
 
                 <div class="form-group">
-                    <label>🖼️ 图片 (可选, 将自动缩放)</label>
+                    <label>🖼️ 画像 (オプション、自動リサイズ)</label>
                     <div class="file-upload">
-                        <button class="btn btn-outline btn-sm">📎 选择图片</button>
+                        <button class="btn btn-outline btn-sm">📎 画像を選択</button>
                         <input type="file" id="imageInput" accept="image/*">
                     </div>
                     <div class="image-preview" id="imagePreview">
-                        <span class="placeholder">未选择图片</span>
+                        <span class="placeholder">画像が選択されていません</span>
                     </div>
                 </div>
 
                 <div class="form-group" style="margin-top:8px;">
-                    <label>📡 传输模式</label>
+                    <label>📡 伝送モード</label>
                     <select id="modeSelect">
-                        <option value="text">文字模式 (快速)</option>
-                        <option value="image">图片模式 (慢速)</option>
-                        <option value="auto">自动 (文字优先)</option>
+                        <option value="text">テキストモード (高速)</option>
+                        <option value="image">画像モード (低速)</option>
+                        <option value="auto">自動 (テキスト優先)</option>
                     </select>
                 </div>
 
                 <div class="btn-group">
-                    <button class="btn btn-primary" id="sendBtn">🔊 发送</button>
-                    <button class="btn btn-danger" id="cancelSendBtn" disabled>⏹ 取消</button>
-                    <button class="btn btn-outline btn-sm" id="downloadBtn" disabled>⬇ 下载WAV</button>
+                    <button class="btn btn-primary" id="sendBtn">🔊 送信</button>
+                    <button class="btn btn-danger" id="cancelSendBtn" disabled>⏹ キャンセル</button>
+                    <button class="btn btn-outline btn-sm" id="downloadBtn" disabled>⬇ WAVをDL</button>
                 </div>
 
-                <!-- 发送进度 -->
+                <!-- 送信プログレス -->
                 <div class="progress-wrap" id="sendProgressWrap">
                     <div class="progress-bar" id="sendProgressBar" style="width:0%"></div>
                 </div>
 
                 <div class="status-bar" style="margin-top:8px;">
                     <span class="status-item"><span class="label">速度</span> <span class="value cyan" id="sendSpeed">—</span></span>
-                    <span class="status-item"><span class="label">数据量</span> <span class="value" id="sendDataSize">—</span></span>
-                    <span class="status-item"><span class="label">纠错率</span> <span class="value orange" id="sendEccRate">—</span></span>
+                    <span class="status-item"><span class="label">データ量</span> <span class="value" id="sendDataSize">—</span></span>
+                    <span class="status-item"><span class="label">誤り訂正率</span> <span class="value orange" id="sendEccRate">—</span></span>
                 </div>
             </div>
 
-            <!-- ===== 右：接收端 ===== -->
+            <!-- ===== 右：受信側 ===== -->
             <div class="card">
                 <div class="card-title">
-                    <span class="icon">📥</span> 接收端
-                    <span style="margin-left:auto;font-size:12px;font-weight:400;color:#6a8aaa;" id="recvStatus">就绪</span>
+                    <span class="icon">📥</span> 受信側
+                    <span style="margin-left:auto;font-size:12px;font-weight:400;color:#6a8aaa;" id="recvStatus">準備完了</span>
                 </div>
 
                 <div class="btn-group">
-                    <button class="btn btn-success" id="recvBtn">🎤 开始接收</button>
-                    <button class="btn btn-danger" id="cancelRecvBtn" disabled>⏹ 取消</button>
-                    <button class="btn btn-outline btn-sm" id="clearRecvBtn">🗑 清除</button>
+                    <button class="btn btn-success" id="recvBtn">🎤 受信開始</button>
+                    <button class="btn btn-danger" id="cancelRecvBtn" disabled>⏹ キャンセル</button>
+                    <button class="btn btn-outline btn-sm" id="clearRecvBtn">🗑 クリア</button>
                 </div>
 
                 <div class="progress-wrap" id="recvProgressWrap">
@@ -591,86 +591,86 @@
 
                 <div class="status-bar" style="margin-top:8px;">
                     <span class="status-item"><span class="label">速度</span> <span class="value cyan" id="recvSpeed">—</span></span>
-                    <span class="status-item"><span class="label">误码率</span> <span class="value orange" id="recvBer">—</span></span>
-                    <span class="status-item"><span class="label">信号</span> <span class="value" id="recvSignal">—</span></span>
+                    <span class="status-item"><span class="label">ビット誤り率</span> <span class="value orange" id="recvBer">—</span></span>
+                    <span class="status-item"><span class="label">信号強度</span> <span class="value" id="recvSignal">—</span></span>
                 </div>
 
-                <!-- 接收结果显示 -->
+                <!-- 受信結果表示 -->
                 <div class="received-content" id="receivedContent">
-                    <span class="empty">等待接收数据…</span>
+                    <span class="empty">データの受信を待機中…</span>
                 </div>
 
-                <!-- 接收图片预览 -->
+                <!-- 受信画像プレビュー -->
                 <div class="image-preview" id="receivedImagePreview">
-                    <span class="placeholder">等待接收图片…</span>
+                    <span class="placeholder">画像の受信を待機中…</span>
                 </div>
             </div>
         </div>
 
-        <!-- ===== 设置 & 日志 ===== -->
+        <!-- ===== 設定 & ログ ===== -->
         <div style="margin-top:20px;">
             <div class="card" style="padding:18px 24px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-                    <span style="font-weight:600;font-size:15px;color:#c8d8f0;">⚙️ 高级设置</span>
-                    <span style="font-size:12px;color:#6a8aaa;" id="settingsInfo">调整参数影响速度与可靠性</span>
+                    <span style="font-weight:600;font-size:15px;color:#c8d8f0;">⚙️ 詳細設定</span>
+                    <span style="font-size:12px;color:#6a8aaa;" id="settingsInfo">パラメータ調整で速度と信頼性を変更</span>
                 </div>
                 <div class="settings-grid">
                     <div class="setting-item">
-                        <label>🔊 频率范围 <span class="range-value" id="freqRangeLabel">5k–7k Hz</span></label>
-                        <input type="range" id="freqRange" min="0" max="2" value="0" step="1">
+                        <label>🔊 周波数範囲 <span class="range-value" id="freqRangeLabel">標準 (5k–7k Hz)</span></label>
+                        <input type="range" id="freqRange" min="0" max="2" value="1" step="1">
                         <div style="display:flex;justify-content:space-between;font-size:11px;color:#4a6a8a;padding:0 2px;">
-                            <span>柔和 (4k–6k)</span>
-                            <span>标准 (5k–7k)</span>
-                            <span>高频 (17k–19k)</span>
+                            <span>ソフト (4k–6k)</span>
+                            <span>標準 (5k–7k)</span>
+                            <span>高周波 (17k–19k)</span>
                         </div>
                     </div>
                     <div class="setting-item">
-                        <label>📏 符号周期 <span class="range-value" id="symbolTimeLabel">12 ms</span></label>
+                        <label>📏 シンボル周期 <span class="range-value" id="symbolTimeLabel">12 ms</span></label>
                         <input type="range" id="symbolTime" min="6" max="24" value="12" step="1">
                         <div style="display:flex;justify-content:space-between;font-size:11px;color:#4a6a8a;padding:0 2px;">
-                            <span>快速 (6ms)</span>
-                            <span>平衡 (12ms)</span>
-                            <span>稳健 (24ms)</span>
+                            <span>高速 (6ms)</span>
+                            <span>バランス (12ms)</span>
+                            <span>堅牢 (24ms)</span>
                         </div>
                     </div>
                     <div class="setting-item">
-                        <label>🛡️ 纠错强度 <span class="range-value" id="eccStrengthLabel">中 (汉明74)</span></label>
+                        <label>🛡️ 誤り訂正強度 <span class="range-value" id="eccStrengthLabel">中 (ハミング74)</span></label>
                         <input type="range" id="eccStrength" min="0" max="2" value="1" step="1">
                         <div style="display:flex;justify-content:space-between;font-size:11px;color:#4a6a8a;padding:0 2px;">
-                            <span>低 (重复2x)</span>
-                            <span>中 (汉明74)</span>
-                            <span>高 (汉明74+交织)</span>
+                            <span>低 (2重複)</span>
+                            <span>中 (ハミング74)</span>
+                            <span>高 (ハミング74＋インターリーブ)</span>
                         </div>
                     </div>
                     <div class="setting-item">
-                        <label>🎯 抗噪阈值 <span class="range-value" id="noiseThresholdLabel">中</span></label>
+                        <label>🎯 ノイズ耐性閾値 <span class="range-value" id="noiseThresholdLabel">中</span></label>
                         <input type="range" id="noiseThreshold" min="0" max="2" value="1" step="1">
                         <div style="display:flex;justify-content:space-between;font-size:11px;color:#4a6a8a;padding:0 2px;">
-                            <span>低敏感</span>
+                            <span>低感度</span>
                             <span>中</span>
-                            <span>高敏感</span>
+                            <span>高感度</span>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="log-area" id="logArea">
-                <div class="log-entry"><span class="time">[系统]</span> <span class="tag-info">就绪</span> 音波通信已启动</div>
+                <div class="log-entry"><span class="time">[システム]</span> <span class="tag-info">準備完了</span> 音響通信が起動しました</div>
             </div>
         </div>
     </div>
 
     <script>
         // ======================================================================
-        //  🎵  音波通信 - 完整 JavaScript 实现
-        //  调制: 2-FSK  |  纠错: (7,4) Hamming + 可选交织
-        //  编码: 文字 UTF-8  /  图片 灰度缩放
+        //  🎵  音響通信 - 完全 JavaScript 実装 (日本語対応)
+        //  変調: 2-FSK  |  誤り訂正: (7,4) Hamming + オプションインターリーブ
+        //  エンコード: テキスト UTF-8  /  画像 グレースケール縮小
         // ======================================================================
 
         (() => {
             'use strict';
 
-            // ---------- DOM 引用 ----------
+            // ---------- DOM 参照 ----------
             const $ = id => document.getElementById(id);
             const textInput = $('textInput');
             const imageInput = $('imageInput');
@@ -698,7 +698,7 @@
 
             const logArea = $('logArea');
 
-            // 设置控件
+            // 設定コントロール
             const freqRange = $('freqRange');
             const symbolTime = $('symbolTime');
             const eccStrength = $('eccStrength');
@@ -708,46 +708,45 @@
             const eccStrengthLabel = $('eccStrengthLabel');
             const noiseThresholdLabel = $('noiseThresholdLabel');
 
-            // ---------- 全局状态 ----------
+            // ---------- グローバル状態 ----------
             const state = {
-                // 发送
+                // 送信
                 sending: false,
                 sendCancel: false,
                 audioBuffer: null,
                 audioContext: null,
-                // 接收
+                // 受信
                 receiving: false,
                 recvCancel: false,
                 stream: null,
                 audioCtx: null,
-                // 数据
-                currentImageData: null, // base64
+                // データ
+                currentImageData: null,
                 currentImageFile: null,
                 receivedImageData: null,
-                // 统计
+                // 統計
                 sendBitCount: 0,
                 recvBitCount: 0,
                 recvErrorCount: 0,
                 sendStartTime: 0,
                 recvStartTime: 0,
-                // 设置参数 (实时)
+                // パラメータ
                 params: {
-                    freqMode: 0, // 0=柔和, 1=标准, 2=高频
+                    freqMode: 1,
                     symbolMs: 12,
-                    eccMode: 1, // 0=重复2x, 1=汉明74, 2=汉明74+交织
-                    noiseThreshold: 1, // 0=低, 1=中, 2=高
+                    eccMode: 1,
+                    noiseThreshold: 1,
                 }
             };
 
-            // ---------- 频率表 ----------
+            // ---------- 周波数テーブル ----------
             const FREQ_TABLE = {
-                // [freqMode][bit] = Hz
-                0: { 0: 4000, 1: 6000 }, // 柔和
-                1: { 0: 5000, 1: 7000 }, // 标准
-                2: { 0: 17000, 1: 19000 }, // 高频 (人耳不敏感)
+                0: { 0: 4000, 1: 6000 },
+                1: { 0: 5000, 1: 7000 },
+                2: { 0: 17000, 1: 19000 },
             };
 
-            // ---------- 日志 ----------
+            // ---------- ログ出力 ----------
             function log(msg, tag = 'info', extra = '') {
                 const time = new Date().toLocaleTimeString();
                 const cls = `tag-${tag}`;
@@ -761,8 +760,7 @@
                 }
             }
 
-            // ---------- 工具：汉明码 (7,4) ----------
-            // 编码: 4位数据 -> 7位码字
+            // ---------- ユーティリティ：ハミング符号 (7,4) ----------
             function hamming74_encode(data4) {
                 const d = (data4 & 0x0F);
                 const p1 = (d >> 3) ^ (d >> 2) ^ (d >> 0) & 1;
@@ -771,7 +769,6 @@
                 return (p1 << 6) | (p2 << 5) | ((d >> 3) << 4) | (p3 << 3) | ((d >> 2) << 2) | ((d >> 1) << 1) | (d & 1);
             }
 
-            // 解码: 7位码字 -> 4位数据, 返回 { data, err, corrected }
             function hamming74_decode(code7) {
                 const c = code7 & 0x7F;
                 const p1 = (c >> 6) & 1;
@@ -791,15 +788,11 @@
                 let data = (d3 << 3) | (d2 << 2) | (d1 << 1) | d0;
 
                 if (syndrome !== 0) {
-                    // 有错误，尝试纠正 (1位纠错)
-                    const bitPos = [
-                        -1, 6, 5, 3, 4, 2, 1, 0 // syndrome -> 位位置
-                    ];
+                    const bitPos = [-1, 6, 5, 3, 4, 2, 1, 0];
                     const pos = bitPos[syndrome] || -1;
                     if (pos >= 0) {
                         const mask = 1 << pos;
                         const newC = c ^ mask;
-                        // 重新提取数据
                         const nd3 = (newC >> 4) & 1;
                         const nd2 = (newC >> 2) & 1;
                         const nd1 = (newC >> 1) & 1;
@@ -807,16 +800,14 @@
                         data = (nd3 << 3) | (nd2 << 2) | (nd1 << 1) | nd0;
                         corrected = true;
                     } else {
-                        // 无法纠正 (2位错误)
                         return { data: 0, err: true, corrected: false };
                     }
                 }
                 return { data, err: false, corrected };
             }
 
-            // ---------- 交织 / 解交织 (深度4) ----------
+            // ---------- インターリーブ / デインターリーブ ----------
             function interleave(bits, depth = 4) {
-                // bits: Uint8Array of 0/1, 长度是 depth 的倍数
                 const n = bits.length;
                 const cols = n / depth;
                 const out = new Uint8Array(n);
@@ -842,26 +833,19 @@
                 return out;
             }
 
-            // ---------- 数据编码器 ----------
+            // ---------- データエンコーダ ----------
             function encodeData(dataBytes, params) {
-                // dataBytes: Uint8Array
-                // 返回: { bits: Uint8Array, stats: { totalBits, dataBits, eccBits } }
-
                 const { eccMode } = params;
-
-                // 1. 将字节转为位
                 let bits = [];
                 for (const b of dataBytes) {
                     for (let i = 7; i >= 0; i--) {
                         bits.push((b >> i) & 1);
                     }
                 }
-
                 const dataBitCount = bits.length;
                 let encodedBits = [];
 
                 if (eccMode === 0) {
-                    // 重复2x
                     for (const b of bits) {
                         encodedBits.push(b, b);
                     }
@@ -869,8 +853,6 @@
                             dataBitCount };
                     return { bits: new Uint8Array(encodedBits), stats };
                 } else if (eccMode === 1 || eccMode === 2) {
-                    // (7,4) 汉明码
-                    // 每4位一组
                     const padded = [...bits];
                     while (padded.length % 4 !== 0) padded.push(0);
                     const groups = padded.length / 4;
@@ -885,42 +867,33 @@
                             encoded.push((code >> i) & 1);
                         }
                     }
-                    // 交织?
                     let finalBits = new Uint8Array(encoded);
                     if (eccMode === 2) {
-                        // 交织深度4
                         finalBits = interleave(finalBits, 4);
                     }
                     const stats = { totalBits: finalBits.length, dataBits: dataBitCount, eccBits: finalBits.length -
                             dataBitCount };
                     return { bits: finalBits, stats };
                 }
-
                 return { bits: new Uint8Array(bits), stats: { totalBits: bits.length, dataBits: bits.length, eccBits: 0 } };
             }
 
-            // ---------- 数据解码器 ----------
+            // ---------- データデコーダ ----------
             function decodeData(bits, params) {
-                // bits: Uint8Array of 0/1
-                // 返回: { data: Uint8Array, errors: number, corrected: number }
-
                 const { eccMode } = params;
                 let decodedBits = [];
 
                 if (eccMode === 0) {
-                    // 重复2x: 多数表决
                     for (let i = 0; i < bits.length; i += 2) {
                         const b0 = bits[i] || 0;
                         const b1 = bits[i + 1] || 0;
-                        decodedBits.push(b0 & b1); // AND -> 保守
+                        decodedBits.push(b0 & b1);
                     }
                 } else if (eccMode === 1 || eccMode === 2) {
                     let workBits = bits;
                     if (eccMode === 2) {
-                        // 解交织
                         workBits = deinterleave(bits, 4);
                     }
-                    // 每7位一组解码
                     const groups = Math.floor(workBits.length / 7);
                     let errors = 0,
                         corrected = 0;
@@ -932,7 +905,6 @@
                         const result = hamming74_decode(code);
                         if (result.err) {
                             errors++;
-                            // 填充0
                             for (let i = 0; i < 4; i++) decodedBits.push(0);
                         } else {
                             if (result.corrected) corrected++;
@@ -941,15 +913,12 @@
                             }
                         }
                     }
-                    // 记录统计
                     state.recvErrorCount = errors;
                     state.recvCorrectedCount = corrected;
                 } else {
-                    // 无纠错
                     decodedBits = Array.from(bits);
                 }
 
-                // 转回字节
                 const byteArr = [];
                 for (let i = 0; i < decodedBits.length; i += 8) {
                     let b = 0;
@@ -962,11 +931,8 @@
                         .recvCorrectedCount || 0 };
             }
 
-            // ---------- FSK 调制 (生成音频) ----------
+            // ---------- FSK 変調 (音声生成) ----------
             function generateFSK(bits, params, sampleRate = 44100) {
-                // bits: Uint8Array of 0/1
-                // 返回 Float32Array 音频数据
-
                 const { freqMode, symbolMs } = params;
                 const freq = FREQ_TABLE[freqMode] || FREQ_TABLE[1];
                 const f0 = freq[0];
@@ -974,7 +940,6 @@
                 const samplesPerSymbol = Math.floor(sampleRate * symbolMs / 1000);
                 const totalSamples = bits.length * samplesPerSymbol;
 
-                // 加前导同步: 10101010... 16个符号
                 const syncBits = 16;
                 const syncSamples = syncBits * samplesPerSymbol;
                 const totalWithSync = totalSamples + syncSamples;
@@ -982,7 +947,7 @@
                 const audio = new Float32Array(totalWithSync);
                 let idx = 0;
 
-                // 同步头
+                // 同期ヘッダ
                 for (let i = 0; i < syncBits; i++) {
                     const bit = i % 2;
                     const f = bit ? f1 : f0;
@@ -992,7 +957,7 @@
                     }
                 }
 
-                // 数据
+                // データ
                 for (const bit of bits) {
                     const f = bit ? f1 : f0;
                     for (let s = 0; s < samplesPerSymbol; s++) {
@@ -1001,7 +966,7 @@
                     }
                 }
 
-                // 淡入淡出 (防止爆音)
+                // フェードイン・アウト
                 const fadeLen = Math.min(256, audio.length);
                 for (let i = 0; i < fadeLen; i++) {
                     const gain = i / fadeLen;
@@ -1012,11 +977,8 @@
                 return audio;
             }
 
-            // ---------- FSK 解调 (分析音频) ----------
+            // ---------- FSK 復調 (音声解析) ----------
             function demodulateFSK(audioData, params, sampleRate = 44100) {
-                // audioData: Float32Array
-                // 返回: { bits: Uint8Array, confidence: number }
-
                 const { freqMode, symbolMs, noiseThreshold } = params;
                 const freq = FREQ_TABLE[freqMode] || FREQ_TABLE[1];
                 const f0 = freq[0];
@@ -1029,8 +991,7 @@
                 const bits = [];
                 let confidenceSum = 0;
 
-                // 检测同步头 (找最佳对齐)
-                // 简单方法: 检测前16个符号的交替模式
+                // 同期検出 (ベストオフセット)
                 let bestOffset = 0;
                 let bestScore = -1;
                 const searchRange = Math.min(8, Math.floor(samplesPerSymbol / 4));
@@ -1040,7 +1001,6 @@
                     for (let i = 0; i < 16 && i < numSymbols; i++) {
                         const start = i * samplesPerSymbol + offset;
                         if (start + samplesPerSymbol > audioData.length) break;
-                        // 计算能量在f0和f1
                         let e0 = 0,
                             e1 = 0;
                         for (let s = 0; s < samplesPerSymbol; s++) {
@@ -1058,16 +1018,13 @@
                     }
                 }
 
-                // 如果同步得分太低，可能没有有效信号
                 if (bestScore < 8) {
                     return { bits: new Uint8Array(0), confidence: 0 };
                 }
 
-                // 从同步头之后开始解调数据
                 const startIdx = 16 * samplesPerSymbol + bestOffset;
                 const dataSymbols = Math.floor((audioData.length - startIdx) / samplesPerSymbol);
 
-                // 阈值系数
                 const thresholdFactor = [0.8, 1.0, 1.2][noiseThreshold] || 1.0;
 
                 for (let i = 0; i < dataSymbols; i++) {
@@ -1081,7 +1038,6 @@
                         e0 += val * Math.sin(2 * Math.PI * f0 * s / sampleRate);
                         e1 += val * Math.sin(2 * Math.PI * f1 * s / sampleRate);
                     }
-                    // 归一化
                     const total = Math.abs(e0) + Math.abs(e1) + 1e-6;
                     const ratio = Math.abs(e1 - e0) / total;
                     const bit = e1 > e0 * thresholdFactor ? 1 : 0;
@@ -1093,7 +1049,7 @@
                 return { bits: new Uint8Array(bits), confidence };
             }
 
-            // ---------- 音频播放 ----------
+            // ---------- 音声再生 ----------
             function playAudio(audioData, sampleRate = 44100) {
                 return new Promise((resolve, reject) => {
                     try {
@@ -1104,12 +1060,9 @@
                         const source = ctx.createBufferSource();
                         source.buffer = buffer;
                         source.connect(ctx.destination);
-                        source.onended = () => {
-                            resolve();
-                        };
+                        source.onended = () => { resolve(); };
                         source.start(0);
                         state.audioSource = source;
-                        // 取消处理
                         const checkCancel = () => {
                             if (state.sendCancel) {
                                 try { source.stop(); } catch (e) {}
@@ -1127,9 +1080,8 @@
                 });
             }
 
-            // ---------- 保存为WAV ----------
+            // ---------- WAV保存 ----------
             function saveWAV(audioData, sampleRate = 44100) {
-                // 创建WAV文件
                 const numChannels = 1;
                 const bitsPerSample = 32;
                 const bytesPerSample = bitsPerSample / 8;
@@ -1140,22 +1092,26 @@
                 const buffer = new ArrayBuffer(totalSize);
                 const view = new DataView(buffer);
 
-                // RIFF
-                writeString(view, 0, 'RIFF');
+                function writeString(offset, str) {
+                    for (let i = 0; i < str.length; i++) {
+                        view.setUint8(offset + i, str.charCodeAt(i));
+                    }
+                }
+
+                writeString(0, 'RIFF');
                 view.setUint32(4, totalSize - 8, true);
-                writeString(view, 8, 'WAVE');
-                writeString(view, 12, 'fmt ');
+                writeString(8, 'WAVE');
+                writeString(12, 'fmt ');
                 view.setUint32(16, 16, true);
-                view.setUint16(20, 3, true); // 32-bit float
+                view.setUint16(20, 3, true);
                 view.setUint16(22, numChannels, true);
                 view.setUint32(24, sampleRate, true);
                 view.setUint32(28, sampleRate * numChannels * bytesPerSample, true);
                 view.setUint16(32, numChannels * bytesPerSample, true);
                 view.setUint16(34, bitsPerSample, true);
-                writeString(view, 36, 'data');
+                writeString(36, 'data');
                 view.setUint32(40, dataSize, true);
 
-                // 数据
                 const offset = 44;
                 for (let i = 0; i < audioData.length; i++) {
                     view.setFloat32(offset + i * 4, audioData[i], true);
@@ -1165,58 +1121,46 @@
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `音波数据_${Date.now()}.wav`;
+                a.download = `音響データ_${Date.now()}.wav`;
                 a.click();
                 URL.revokeObjectURL(url);
             }
 
-            function writeString(view, offset, str) {
-                for (let i = 0; i < str.length; i++) {
-                    view.setUint8(offset + i, str.charCodeAt(i));
-                }
-            }
-
-            // ---------- 发送流程 ----------
+            // ---------- 送信フロー ----------
             async function startSend() {
                 if (state.sending) return;
 
-                // 收集数据
                 const mode = modeSelect.value;
                 let dataBytes = null;
                 let dataType = 'text';
-                let imageDataUrl = null;
 
                 if (mode === 'image' || (mode === 'auto' && state.currentImageData)) {
-                    // 图片模式
                     if (!state.currentImageData) {
-                        log('请先选择一张图片', 'warn');
+                        log('画像が選択されていません', 'warn');
                         return;
                     }
                     dataType = 'image';
-                    // 将图片转为灰度字节
                     try {
                         const imgData = await loadImageData(state.currentImageData);
-                        dataBytes = imageToGrayscaleBytes(imgData, 48, 48); // 48x48 灰度
-                        log(`图片已转换为 ${dataBytes.length} 字节 (48x48 灰度)`, 'info');
+                        dataBytes = imageToGrayscaleBytes(imgData, 48, 48);
+                        log(`画像を ${dataBytes.length} バイト (48x48 グレースケール) に変換しました`, 'info');
                     } catch (e) {
-                        log('图片处理失败: ' + e.message, 'err');
+                        log('画像処理エラー: ' + e.message, 'err');
                         return;
                     }
                 } else {
-                    // 文字模式
                     const text = textInput.value.trim() || 'Hello World!';
                     const encoder = new TextEncoder();
                     dataBytes = encoder.encode(text);
                     dataType = 'text';
-                    log(`文字 "${text.substring(0, 30)}${text.length>30?'...':''}" 编码为 ${dataBytes.length} 字节`, 'info');
+                    log(`テキスト "${text.substring(0, 30)}${text.length>30?'...':''}" を ${dataBytes.length} バイトにエンコード`, 'info');
                 }
 
                 if (!dataBytes || dataBytes.length === 0) {
-                    log('没有数据可发送', 'warn');
+                    log('送信データが空です', 'warn');
                     return;
                 }
 
-                // 准备参数
                 const params = {
                     freqMode: parseInt(freqRange.value) || 0,
                     symbolMs: parseInt(symbolTime.value) || 12,
@@ -1224,42 +1168,34 @@
                     noiseThreshold: parseInt(noiseThreshold.value) || 1,
                 };
 
-                // 编码
                 const { bits, stats } = encodeData(dataBytes, params);
-                log(`编码完成: ${stats.dataBits} 数据位 + ${stats.eccBits} 纠错位 = ${stats.totalBits} 位`, 'info');
+                log(`エンコード完了: ${stats.dataBits} データビット + ${stats.eccBits} 訂正ビット = ${stats.totalBits} ビット`, 'info');
 
-                // 更新UI
                 state.sending = true;
                 state.sendCancel = false;
                 sendBtn.disabled = true;
                 cancelSendBtn.disabled = false;
                 downloadBtn.disabled = true;
                 sendProgressBar.style.width = '0%';
-                sendStatus.textContent = '发送中…';
+                sendStatus.textContent = '送信中…';
                 sendDataSize.textContent = `${(stats.totalBits/8).toFixed(0)} B`;
                 sendEccRate.textContent = `${(stats.eccBits/stats.totalBits*100).toFixed(0)}%`;
 
                 const startTime = performance.now();
                 state.sendStartTime = startTime;
-                let lastUpdate = startTime;
 
-                // 生成音频
                 const sampleRate = 44100;
                 const audioData = generateFSK(bits, params, sampleRate);
                 const duration = audioData.length / sampleRate;
 
-                // 显示预计时间
-                log(`音频长度: ${duration.toFixed(1)}秒, 有效速率: ${(stats.dataBits/duration/8).toFixed(1)} B/s`, 'info');
+                log(`音声長: ${duration.toFixed(1)}秒, 実効速度: ${(stats.dataBits/duration/8).toFixed(1)} B/s`, 'info');
 
-                // 播放
                 try {
-                    // 进度模拟
                     const progressInterval = setInterval(() => {
                         if (state.sendCancel) return;
                         const elapsed = (performance.now() - startTime) / 1000;
                         const pct = Math.min(100, (elapsed / duration) * 100);
                         sendProgressBar.style.width = pct + '%';
-                        // 速度
                         const speed = elapsed > 0 ? (stats.dataBits / 8 / elapsed) : 0;
                         sendSpeed.textContent = speed.toFixed(1) + ' B/s';
                     }, 100);
@@ -1271,34 +1207,31 @@
                     sendProgressBar.style.width = '100%';
 
                     if (state.sendCancel) {
-                        log('发送已取消', 'warn');
-                        sendStatus.textContent = '已取消';
+                        log('送信がキャンセルされました', 'warn');
+                        sendStatus.textContent = 'キャンセル';
                     } else {
                         const elapsed = (performance.now() - startTime) / 1000;
                         const speed = stats.dataBits / 8 / elapsed;
-                        log(`✅ 发送完成! 用时 ${elapsed.toFixed(1)}s, 平均 ${speed.toFixed(1)} B/s`, 'ok');
-                        sendStatus.textContent = '✅ 完成';
+                        log(`✅ 送信完了! 所要時間 ${elapsed.toFixed(1)}s, 平均 ${speed.toFixed(1)} B/s`, 'ok');
+                        sendStatus.textContent = '✅ 完了';
                         sendSpeed.textContent = speed.toFixed(1) + ' B/s';
-                        // 允许下载
                         downloadBtn.disabled = false;
                         state.lastAudioData = audioData;
                     }
                 } catch (e) {
-                    log('发送失败: ' + e.message, 'err');
-                    sendStatus.textContent = '❌ 失败';
+                    log('送信失敗: ' + e.message, 'err');
+                    sendStatus.textContent = '❌ 失敗';
                 }
 
                 state.sending = false;
                 sendBtn.disabled = false;
                 cancelSendBtn.disabled = true;
-                if (!state.sendCancel) {
-                    // 保留下载
-                } else {
+                if (state.sendCancel) {
                     downloadBtn.disabled = true;
                 }
             }
 
-            // ---------- 加载图片数据 ----------
+            // ---------- 画像読み込み ----------
             function loadImageData(dataUrl) {
                 return new Promise((resolve, reject) => {
                     const img = new Image();
@@ -1308,15 +1241,14 @@
                         canvas.width = img.width;
                         canvas.height = img.height;
                         ctx.drawImage(img, 0, 0);
-                        const imageData = ctx.getImageData(0, 0, img.width, img.height);
-                        resolve(imageData);
+                        resolve(ctx.getImageData(0, 0, img.width, img.height));
                     };
-                    img.onerror = () => reject(new Error('图片加载失败'));
+                    img.onerror = () => reject(new Error('画像読み込み失敗'));
                     img.src = dataUrl;
                 });
             }
 
-            // ---------- 图片转灰度字节 ----------
+            // ---------- 画像→グレースケールバイト ----------
             function imageToGrayscaleBytes(imageData, targetW, targetH) {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
@@ -1335,7 +1267,7 @@
                 return bytes;
             }
 
-            // ---------- 灰度字节转图片 ----------
+            // ---------- グレースケールバイト→画像 ----------
             function grayscaleBytesToImage(bytes, w, h) {
                 const canvas = document.createElement('canvas');
                 canvas.width = w;
@@ -1355,12 +1287,11 @@
                 return canvas.toDataURL('image/png');
             }
 
-            // ---------- 接收流程 ----------
+            // ---------- 受信フロー ----------
             async function startReceive() {
                 if (state.receiving) return;
 
                 try {
-                    // 请求麦克风
                     const stream = await navigator.mediaDevices.getUserMedia({
                         audio: {
                             echoCancellation: false,
@@ -1374,7 +1305,6 @@
                     state.audioCtx = audioCtx;
                     const source = audioCtx.createMediaStreamSource(stream);
 
-                    // 使用ScriptProcessorNode处理
                     const sampleRate = audioCtx.sampleRate;
                     const bufferSize = 8192;
                     const processor = audioCtx.createScriptProcessor(bufferSize, 1, 1);
@@ -1386,9 +1316,8 @@
                         noiseThreshold: parseInt(noiseThreshold.value) || 1,
                     };
 
-                    // 收集音频数据
                     let audioBuffer = [];
-                    const minSamples = Math.floor(sampleRate * 1.5); // 至少1.5秒
+                    const minSamples = Math.floor(sampleRate * 1.5);
                     let collecting = true;
                     let recvStartTime = performance.now();
                     state.recvStartTime = recvStartTime;
@@ -1397,31 +1326,26 @@
 
                     recvBtn.disabled = true;
                     cancelRecvBtn.disabled = false;
-                    recvStatus.textContent = '接收中…';
+                    recvStatus.textContent = '受信中…';
                     recvProgressBar.style.width = '0%';
-                    receivedContent.innerHTML = '<span class="empty">🎤 正在监听…</span>';
-                    receivedImagePreview.innerHTML = '<span class="placeholder">等待接收…</span>';
+                    receivedContent.innerHTML = '<span class="empty">🎤 リスニング中…</span>';
+                    receivedImagePreview.innerHTML = '<span class="placeholder">画像待機中…</span>';
 
-                    log('开始接收, 采样率: ' + sampleRate + ' Hz', 'info');
+                    log(`受信開始, サンプリングレート: ${sampleRate} Hz`, 'info');
 
                     let lastLogTime = Date.now();
-                    let chunkCount = 0;
 
                     processor.onaudioprocess = (e) => {
                         if (state.recvCancel || !collecting) return;
                         const input = e.inputBuffer.getChannelData(0);
-                        // 复制数据
                         for (let i = 0; i < input.length; i++) {
                             audioBuffer.push(input[i]);
                         }
-                        chunkCount++;
 
-                        // 进度 (基于时间)
                         const elapsed = (performance.now() - recvStartTime) / 1000;
                         if (elapsed > 0.5) {
                             const pct = Math.min(100, (elapsed / 20) * 100);
                             recvProgressBar.style.width = pct + '%';
-                            // 信号强度
                             if (audioBuffer.length > 0) {
                                 const last = audioBuffer.slice(-4096);
                                 let sum = 0;
@@ -1431,14 +1355,12 @@
                             }
                         }
 
-                        // 每2秒尝试解调一次 (但保留数据)
                         const now = Date.now();
                         if (now - lastLogTime > 2000 && audioBuffer.length > minSamples) {
                             lastLogTime = now;
-                            // 尝试解调
                             const result = demodulateFSK(new Float32Array(audioBuffer), params, sampleRate);
                             if (result.bits.length > 0 && result.confidence > 0.3) {
-                                log(`检测到信号, 置信度 ${(result.confidence*100).toFixed(0)}%, 位数 ${result.bits.length}`,
+                                log(`信号検出, 信頼度 ${(result.confidence*100).toFixed(0)}%, ビット数 ${result.bits.length}`,
                                     'info');
                             }
                         }
@@ -1447,7 +1369,6 @@
                     source.connect(processor);
                     processor.connect(audioCtx.destination);
 
-                    // 等待足够数据或用户取消
                     await new Promise((resolve) => {
                         const checkDone = () => {
                             if (state.recvCancel) {
@@ -1456,15 +1377,12 @@
                                 return;
                             }
                             const elapsed = (performance.now() - recvStartTime) / 1000;
-                            // 如果超过30秒或数据足够多且检测到有效信号
                             if (elapsed > 30) {
                                 collecting = false;
                                 resolve();
                                 return;
                             }
-                            // 如果数据量足够且检测到信号结束
                             if (audioBuffer.length > minSamples * 2) {
-                                // 检查末尾是否有静音
                                 const tail = audioBuffer.slice(-sampleRate);
                                 let tailEnergy = 0;
                                 for (const v of tail) tailEnergy += Math.abs(v);
@@ -1480,76 +1398,67 @@
                         checkDone();
                     });
 
-                    // 停止处理
                     processor.disconnect();
                     source.disconnect();
                     stream.getTracks().forEach(t => t.stop());
 
                     if (state.recvCancel) {
-                        log('接收已取消', 'warn');
-                        recvStatus.textContent = '已取消';
+                        log('受信がキャンセルされました', 'warn');
+                        recvStatus.textContent = 'キャンセル';
                         state.receiving = false;
                         recvBtn.disabled = false;
                         cancelRecvBtn.disabled = true;
                         return;
                     }
 
-                    // 解调
-                    log(`采集到 ${audioBuffer.length} 个样本, 开始解调...`, 'info');
+                    log(`${audioBuffer.length} サンプルを取得、復調を開始...`, 'info');
                     const audioData = new Float32Array(audioBuffer);
                     const result = demodulateFSK(audioData, params, sampleRate);
 
                     if (result.bits.length === 0 || result.confidence < 0.2) {
-                        log('未检测到有效信号, 请确保发送端正在播放', 'warn');
-                        receivedContent.innerHTML = '<span class="empty">❌ 未检测到信号</span>';
-                        recvStatus.textContent = '❌ 无信号';
+                        log('有効な信号が検出されませんでした (送信側が再生中であることを確認してください)', 'warn');
+                        receivedContent.innerHTML = '<span class="empty">❌ 信号が検出されません</span>';
+                        recvStatus.textContent = '❌ 信号なし';
                         state.receiving = false;
                         recvBtn.disabled = false;
                         cancelRecvBtn.disabled = true;
                         return;
                     }
 
-                    log(`解调完成: ${result.bits.length} 位, 置信度 ${(result.confidence*100).toFixed(0)}%`, 'info');
+                    log(`復調完了: ${result.bits.length} ビット, 信頼度 ${(result.confidence*100).toFixed(0)}%`, 'info');
 
-                    // 解码
                     const decodeResult = decodeData(result.bits, params);
                     const dataBytes = decodeResult.data;
 
-                    // 计算BER
                     const totalBits = result.bits.length;
                     const errorBits = decodeResult.errors * 7 || 0;
                     const ber = totalBits > 0 ? errorBits / totalBits : 0;
                     recvBer.textContent = (ber * 100).toFixed(2) + '%';
 
-                    // 尝试还原数据
                     let success = false;
                     if (dataBytes.length > 0) {
-                        // 尝试作为文字
                         try {
                             const decoder = new TextDecoder();
                             const text = decoder.decode(dataBytes);
-                            // 检查是否可打印
                             const printable = text.split('').filter(c => c.charCodeAt(0) >= 32 || c === '\n' || c === '\r')
                                 .length;
                             if (printable > text.length * 0.5 && text.length > 0) {
                                 receivedContent.innerHTML = `<div style="white-space:pre-wrap;">${escapeHtml(text)}</div>`;
-                                log(`✅ 还原文字: "${text.substring(0, 50)}${text.length>50?'...':''}"`, 'ok');
+                                log(`✅ テキスト復元: "${text.substring(0, 50)}${text.length>50?'...':''}"`, 'ok');
                                 success = true;
                             }
                         } catch (e) {}
 
-                        // 尝试作为图片 (48x48 灰度)
                         if (!success && dataBytes.length === 48 * 48) {
                             try {
                                 const imgUrl = grayscaleBytesToImage(dataBytes, 48, 48);
                                 receivedImagePreview.innerHTML =
-                                    `<img src="${imgUrl}" alt="接收图片" style="max-height:200px;">`;
-                                log('✅ 还原图片 (48x48 灰度)', 'ok');
+                                    `<img src="${imgUrl}" alt="受信画像" style="max-height:200px;">`;
+                                log('✅ 画像復元 (48x48 グレースケール)', 'ok');
                                 success = true;
                             } catch (e) {}
                         }
 
-                        // 如果数据长度接近48x48, 尝试填充
                         if (!success && dataBytes.length > 48 * 48 * 0.8 && dataBytes.length < 48 * 48 * 1.2) {
                             try {
                                 const padded = new Uint8Array(48 * 48);
@@ -1557,37 +1466,36 @@
                                 for (let i = 0; i < copyLen; i++) padded[i] = dataBytes[i];
                                 const imgUrl = grayscaleBytesToImage(padded, 48, 48);
                                 receivedImagePreview.innerHTML =
-                                    `<img src="${imgUrl}" alt="接收图片" style="max-height:200px;">`;
-                                log('✅ 还原图片 (48x48 灰度, 部分填充)', 'ok');
+                                    `<img src="${imgUrl}" alt="受信画像" style="max-height:200px;">`;
+                                log('✅ 画像復元 (48x48 グレースケール, 部分補完)', 'ok');
                                 success = true;
                             } catch (e) {}
                         }
 
                         if (!success) {
-                            // 显示十六进制
                             const hex = Array.from(dataBytes.slice(0, 64)).map(b => b.toString(16).padStart(2, '0')).join(' ');
                             receivedContent.innerHTML =
-                                `<div style="font-family:monospace;font-size:12px;color:#8aaec8;">二进制数据 (${dataBytes.length} 字节)<br>${hex}${dataBytes.length>64?' …':''}</div>`;
-                            log('接收到二进制数据, 无法识别为文字或图片', 'warn');
+                                `<div style="font-family:monospace;font-size:12px;color:#8aaec8;">バイナリデータ (${dataBytes.length} バイト)<br>${hex}${dataBytes.length>64?' …':''}</div>`;
+                            log('バイナリデータを受信しました (テキスト/画像として認識できません)', 'warn');
                         }
                     } else {
-                        receivedContent.innerHTML = '<span class="empty">❌ 解码失败, 数据为空</span>';
-                        log('解码失败', 'err');
+                        receivedContent.innerHTML = '<span class="empty">❌ デコード失敗 (データが空です)</span>';
+                        log('デコード失敗', 'err');
                     }
 
                     const elapsed = (performance.now() - recvStartTime) / 1000;
                     const speed = dataBytes.length / elapsed;
                     recvSpeed.textContent = speed.toFixed(1) + ' B/s';
-                    recvStatus.textContent = success ? '✅ 完成' : '⚠️ 部分成功';
+                    recvStatus.textContent = success ? '✅ 完了' : '⚠️ 部分的に成功';
                     recvProgressBar.style.width = '100%';
 
-                    log(`接收完成, 用时 ${elapsed.toFixed(1)}s, 速度 ${speed.toFixed(1)} B/s`, 'ok');
+                    log(`受信完了, 所要時間 ${elapsed.toFixed(1)}s, 速度 ${speed.toFixed(1)} B/s`, 'ok');
 
                 } catch (e) {
-                    log('接收失败: ' + e.message, 'err');
+                    log('受信エラー: ' + e.message, 'err');
                     console.error(e);
-                    recvStatus.textContent = '❌ 错误';
-                    receivedContent.innerHTML = `<span class="empty">❌ 错误: ${e.message}</span>`;
+                    recvStatus.textContent = '❌ エラー';
+                    receivedContent.innerHTML = `<span class="empty">❌ エラー: ${e.message}</span>`;
                 }
 
                 state.receiving = false;
@@ -1595,15 +1503,14 @@
                 cancelRecvBtn.disabled = true;
             }
 
-            // ---------- 辅助: 转义HTML ----------
+            // ---------- ユーティリティ: HTMLエスケープ ----------
             function escapeHtml(str) {
                 const div = document.createElement('div');
                 div.textContent = str;
                 return div.innerHTML;
             }
 
-            // ---------- UI 事件绑定 ----------
-            // 图片选择
+            // ---------- イベントバインディング ----------
             imageInput.addEventListener('change', (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
@@ -1612,9 +1519,8 @@
                     const dataUrl = ev.target.result;
                     state.currentImageData = dataUrl;
                     state.currentImageFile = file;
-                    imagePreview.innerHTML = `<img src="${dataUrl}" alt="预览" style="max-height:120px;">`;
-                    log(`图片已加载: ${file.name} (${(file.size/1024).toFixed(1)} KB)`, 'info');
-                    // 自动切换到图片模式
+                    imagePreview.innerHTML = `<img src="${dataUrl}" alt="プレビュー" style="max-height:120px;">`;
+                    log(`画像読み込み: ${file.name} (${(file.size/1024).toFixed(1)} KB)`, 'info');
                     if (modeSelect.value === 'auto') {
                         modeSelect.value = 'image';
                     }
@@ -1622,10 +1528,8 @@
                 reader.readAsDataURL(file);
             });
 
-            // 发送按钮
             sendBtn.addEventListener('click', startSend);
 
-            // 取消发送
             cancelSendBtn.addEventListener('click', () => {
                 state.sendCancel = true;
                 if (state.audioSource) {
@@ -1634,25 +1538,22 @@
                 if (state.audioContext) {
                     try { state.audioContext.close(); } catch (e) {}
                 }
-                log('发送已取消 (用户操作)', 'warn');
-                sendStatus.textContent = '已取消';
+                log('送信キャンセル (ユーザー操作)', 'warn');
+                sendStatus.textContent = 'キャンセル';
                 sendBtn.disabled = false;
                 cancelSendBtn.disabled = true;
                 state.sending = false;
             });
 
-            // 下载按钮
             downloadBtn.addEventListener('click', () => {
                 if (state.lastAudioData) {
                     saveWAV(state.lastAudioData, 44100);
-                    log('WAV文件已下载', 'info');
+                    log('WAVファイルをダウンロードしました', 'info');
                 }
             });
 
-            // 接收按钮
             recvBtn.addEventListener('click', startReceive);
 
-            // 取消接收
             cancelRecvBtn.addEventListener('click', () => {
                 state.recvCancel = true;
                 if (state.stream) {
@@ -1661,29 +1562,28 @@
                 if (state.audioCtx) {
                     try { state.audioCtx.close(); } catch (e) {}
                 }
-                log('接收已取消 (用户操作)', 'warn');
-                recvStatus.textContent = '已取消';
+                log('受信キャンセル (ユーザー操作)', 'warn');
+                recvStatus.textContent = 'キャンセル';
                 recvBtn.disabled = false;
                 cancelRecvBtn.disabled = true;
                 state.receiving = false;
             });
 
-            // 清除接收
             clearRecvBtn.addEventListener('click', () => {
-                receivedContent.innerHTML = '<span class="empty">等待接收数据…</span>';
-                receivedImagePreview.innerHTML = '<span class="placeholder">等待接收图片…</span>';
+                receivedContent.innerHTML = '<span class="empty">データの受信を待機中…</span>';
+                receivedImagePreview.innerHTML = '<span class="placeholder">画像の受信を待機中…</span>';
                 recvBer.textContent = '—';
                 recvSpeed.textContent = '—';
                 recvSignal.textContent = '—';
                 recvProgressBar.style.width = '0%';
-                recvStatus.textContent = '就绪';
-                log('已清除接收内容', 'info');
+                recvStatus.textContent = '準備完了';
+                log('受信内容をクリアしました', 'info');
             });
 
-            // ---------- 设置控件联动 ----------
+            // ---------- 設定UI連動 ----------
             freqRange.addEventListener('input', () => {
                 const v = parseInt(freqRange.value);
-                const labels = ['柔和 (4k–6k)', '标准 (5k–7k)', '高频 (17k–19k)'];
+                const labels = ['ソフト (4k–6k)', '標準 (5k–7k)', '高周波 (17k–19k)'];
                 freqRangeLabel.textContent = labels[v] || labels[0];
                 state.params.freqMode = v;
             });
@@ -1694,24 +1594,23 @@
             });
             eccStrength.addEventListener('input', () => {
                 const v = parseInt(eccStrength.value);
-                const labels = ['低 (重复2x)', '中 (汉明74)', '高 (汉明74+交织)'];
+                const labels = ['低 (2重複)', '中 (ハミング74)', '高 (ハミング74＋インターリーブ)'];
                 eccStrengthLabel.textContent = labels[v] || labels[0];
                 state.params.eccMode = v;
             });
             noiseThreshold.addEventListener('input', () => {
                 const v = parseInt(noiseThreshold.value);
-                const labels = ['低敏感', '中', '高敏感'];
+                const labels = ['低感度', '中', '高感度'];
                 noiseThresholdLabel.textContent = labels[v] || labels[0];
                 state.params.noiseThreshold = v;
             });
 
-            // 初始化显示
             freqRange.dispatchEvent(new Event('input'));
             symbolTime.dispatchEvent(new Event('input'));
             eccStrength.dispatchEvent(new Event('input'));
             noiseThreshold.dispatchEvent(new Event('input'));
 
-            // ---------- 键盘快捷键 ----------
+            // ---------- キーボードショートカット ----------
             document.addEventListener('keydown', (e) => {
                 if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                     e.preventDefault();
@@ -1719,12 +1618,11 @@
                 }
             });
 
-            log('🎵 音波通信已就绪 — 输入文字或选择图片，点击"发送"', 'info');
-            log('💡 提示: 使用麦克风接收时，请确保发送端在播放', 'info');
+            log('🎵 音響通信が準備完了しました — テキストまたは画像を入力し「送信」をクリック', 'info');
+            log('💡 ヒント: 受信時は送信側が音声を再生していることを確認してください', 'info');
 
-            // 额外: 如果浏览器不支持AudioContext
             if (!window.AudioContext && !window.webkitAudioContext) {
-                log('⚠️ 浏览器不支持 Web Audio API', 'err');
+                log('⚠️ お使いのブラウザは Web Audio API をサポートしていません', 'err');
             }
 
         })();

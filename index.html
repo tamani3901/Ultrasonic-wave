@@ -1,217 +1,1733 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <title>超音波データ通信 (修正版)</title>
-  <style>
-    body { font-family: sans-serif; max-width: 640px; margin: 20px auto; padding: 15px; background: #f4f6f8; }
-    .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
-    textarea { width: 100%; height: 50px; margin-bottom: 10px; font-size: 16px; box-sizing: border-box; }
-    button { padding: 10px 16px; font-size: 14px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; color: white; margin-right: 5px; }
-    button:disabled { background: #ccc; }
-    .btn-send { background: #28a745; }
-    .btn-listen { background: #007bff; }
-    .btn-cancel { background: #dc3545; }
-    select { padding: 8px; font-size: 14px; margin-bottom: 10px; }
-    .result { font-size: 22px; font-weight: bold; color: #007bff; padding: 10px; background: #e8f4ff; border-radius: 6px; text-align: center; margin-top: 10px; }
-    .log { font-family: monospace; font-size: 11px; background: #eee; padding: 8px; height: 140px; overflow-y: auto; margin-top: 10px; white-space: pre-wrap; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎵 音波通信 - 声学数据传输</title>
+    <style>
+        /* ===== 全局重置 & 主题 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #0b0e17;
+            color: #e0e8f0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .app {
+            max-width: 1200px;
+            width: 100%;
+            background: rgba(18, 26, 40, 0.85);
+            backdrop-filter: blur(16px);
+            border-radius: 40px;
+            padding: 30px 35px 40px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            color: #f0f5ff;
+        }
+        h1 small {
+            font-size: 15px;
+            font-weight: 400;
+            color: #8899bb;
+            margin-left: 6px;
+        }
+        .badge {
+            background: rgba(0, 200, 255, 0.12);
+            padding: 4px 14px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #7ac7ff;
+            border: 1px solid rgba(0, 180, 255, 0.15);
+            margin-left: auto;
+        }
+        /* ===== 网格布局 ===== */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+            margin-top: 6px;
+        }
+        @media (max-width: 880px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+            .app {
+                padding: 20px;
+            }
+        }
+        /* ===== 卡片 ===== */
+        .card {
+            background: rgba(12, 20, 34, 0.7);
+            border-radius: 24px;
+            padding: 22px 24px 26px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+            transition: border-color 0.2s;
+        }
+        .card:hover {
+            border-color: rgba(255, 255, 255, 0.10);
+        }
+        .card-title {
+            font-size: 17px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 18px;
+            color: #c8d8f0;
+        }
+        .card-title .icon {
+            font-size: 22px;
+        }
+        /* ===== 表单控件 ===== */
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: #99aec9;
+            margin-bottom: 5px;
+        }
+        textarea,
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(0, 10, 26, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            color: #e8f0fa;
+            font-size: 15px;
+            font-family: inherit;
+            transition: border-color 0.25s, box-shadow 0.25s;
+            outline: none;
+            resize: vertical;
+        }
+        textarea:focus,
+        input[type="text"]:focus,
+        select:focus {
+            border-color: #3a8cff;
+            box-shadow: 0 0 0 3px rgba(58, 140, 255, 0.15);
+        }
+        textarea {
+            min-height: 72px;
+            line-height: 1.5;
+        }
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2388aacc' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            padding-right: 40px;
+        }
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        .btn {
+            padding: 10px 22px;
+            border: none;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.06);
+            color: #c8d8f0;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-1px);
+        }
+        .btn:active {
+            transform: scale(0.97);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #2a7aff, #1a5adf);
+            color: #fff;
+            border: none;
+            box-shadow: 0 4px 20px rgba(42, 122, 255, 0.25);
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #3a8aff, #2a6aef);
+            box-shadow: 0 6px 28px rgba(42, 122, 255, 0.35);
+            transform: translateY(-2px);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #00c853, #00a844);
+            color: #fff;
+            border: none;
+            box-shadow: 0 4px 20px rgba(0, 200, 83, 0.2);
+        }
+        .btn-success:hover {
+            background: linear-gradient(135deg, #10d863, #00b84a);
+            box-shadow: 0 6px 28px rgba(0, 200, 83, 0.3);
+            transform: translateY(-2px);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #ff3d3d, #d02020);
+            color: #fff;
+            border: none;
+            box-shadow: 0 4px 20px rgba(255, 61, 61, 0.2);
+        }
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #ff5555, #e03030);
+            box-shadow: 0 6px 28px rgba(255, 61, 61, 0.3);
+            transform: translateY(-2px);
+        }
+        .btn-warning {
+            background: linear-gradient(135deg, #ffab00, #e09000);
+            color: #1a1a2e;
+            border: none;
+            box-shadow: 0 4px 20px rgba(255, 171, 0, 0.2);
+        }
+        .btn-warning:hover {
+            background: linear-gradient(135deg, #ffbb20, #f0a000);
+            transform: translateY(-2px);
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        .btn-sm {
+            padding: 6px 14px;
+            font-size: 12px;
+        }
+        .btn-block {
+            width: 100%;
+            justify-content: center;
+        }
+        /* ===== 文件上传 ===== */
+        .file-upload {
+            position: relative;
+            display: inline-block;
+        }
+        .file-upload input[type="file"] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        .file-upload .btn {
+            pointer-events: none;
+        }
+        /* ===== 状态 & 信息 ===== */
+        .status-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 24px;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            margin: 16px 0 6px;
+            font-size: 13px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .status-item .label {
+            color: #7a8fa8;
+        }
+        .status-item .value {
+            font-weight: 600;
+            color: #d0e0f5;
+            font-variant-numeric: tabular-nums;
+        }
+        .status-item .value.green {
+            color: #6fdf8a;
+        }
+        .status-item .value.cyan {
+            color: #6fc8ff;
+        }
+        .status-item .value.orange {
+            color: #ffb347;
+        }
+        .progress-wrap {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 4px;
+            margin: 8px 0 4px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #2a7aff, #6fc8ff);
+            border-radius: 4px;
+            transition: width 0.15s ease;
+        }
+        /* ===== 图片预览 ===== */
+        .image-preview {
+            margin-top: 12px;
+            border-radius: 16px;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.3);
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px dashed rgba(255, 255, 255, 0.08);
+            padding: 8px;
+        }
+        .image-preview img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 10px;
+            display: block;
+        }
+        .image-preview .placeholder {
+            color: #5a6f8a;
+            font-size: 14px;
+        }
+        /* ===== 接收结果显示 ===== */
+        .received-content {
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 16px;
+            padding: 16px 18px;
+            margin-top: 12px;
+            min-height: 60px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            word-break: break-all;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .received-content .empty {
+            color: #5a6f8a;
+            font-style: italic;
+        }
+        /* ===== 设置面板 ===== */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px 24px;
+            margin: 12px 0 8px;
+        }
+        @media (max-width: 500px) {
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .setting-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .setting-item label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #8aa0be;
+            display: flex;
+            justify-content: space-between;
+        }
+        .setting-item input[type="range"] {
+            width: 100%;
+            height: 4px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 4px;
+            outline: none;
+        }
+        .setting-item input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #3a8cff;
+            cursor: pointer;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        .setting-item input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #3a8cff;
+            cursor: pointer;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        .setting-item .range-value {
+            color: #c8d8f0;
+            font-weight: 600;
+            font-size: 13px;
+            min-width: 32px;
+            display: inline-block;
+            text-align: right;
+        }
+        /* ===== 日志 ===== */
+        .log-area {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 14px;
+            padding: 12px 16px;
+            max-height: 80px;
+            overflow-y: auto;
+            font-size: 12px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            color: #8aaec8;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            margin-top: 12px;
+            line-height: 1.7;
+            scroll-behavior: smooth;
+        }
+        .log-area .log-entry {
+            opacity: 0.85;
+        }
+        .log-area .log-entry .time {
+            color: #4a6a8a;
+            margin-right: 10px;
+        }
+        .log-area .log-entry .tag-ok {
+            color: #6fdf8a;
+        }
+        .log-area .log-entry .tag-err {
+            color: #ff6b6b;
+        }
+        .log-area .log-entry .tag-info {
+            color: #6fc8ff;
+        }
+        .log-area .log-entry .tag-warn {
+            color: #ffb347;
+        }
+        /* ===== 滚动条 ===== */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        /* ===== 响应式微调 ===== */
+        @media (max-width: 600px) {
+            .app {
+                padding: 16px;
+                border-radius: 24px;
+            }
+            .card {
+                padding: 16px 16px 20px;
+            }
+            .btn {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+            .status-bar {
+                font-size: 12px;
+                gap: 8px 16px;
+            }
+            h1 {
+                font-size: 22px;
+            }
+        }
+        /* 闪烁动画 */
+        @keyframes pulse-dot {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.2;
+            }
+        }
+        .recording-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ff3d3d;
+            margin-right: 6px;
+            animation: pulse-dot 0.8s ease-in-out infinite;
+        }
+        .recording-dot.idle {
+            animation: none;
+            background: #4a6a8a;
+        }
+        .flex {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .mt-8 {
+            margin-top: 8px;
+        }
+        .mt-12 {
+            margin-top: 12px;
+        }
+        .gap-6 {
+            gap: 6px;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .w-full {
+            width: 100%;
+        }
+    </style>
 </head>
 <body>
 
-  <h2>🦇 超音波通信 (修正版)</h2>
+    <div class="app" id="app">
+        <h1>
+            🎵 音波通信
+            <small>声学数据传输</small>
+            <span class="badge">v1.0 · 纠错+抗噪</span>
+        </h1>
 
-  <div class="card">
-    <h3>1. 送信設定</h3>
-    <label>送信モード: </label>
-    <select id="txSpeed">
-      <option value="100">🛡️ 正確モード (100ms)</option>
-      <option value="60">⚡ 高速モード (60ms)</option>
-    </select>
-    <textarea id="inputText" placeholder="送信文字">テスト</textarea>
-    <button class="btn-send" id="btnSend">🔊 超音波送信</button>
-  </div>
+        <div class="grid-2">
+            <!-- ===== 左：发送端 ===== -->
+            <div class="card">
+                <div class="card-title">
+                    <span class="icon">📤</span> 发送端
+                    <span style="margin-left:auto;font-size:12px;font-weight:400;color:#6a8aaa;" id="sendStatus">就绪</span>
+                </div>
 
-  <div class="card">
-    <h3>2. 受信設定</h3>
-    <label>受信モード: </label>
-    <select id="rxSpeed">
-      <option value="100">🛡️ 正確モード (100ms)</option>
-      <option value="60">⚡ 高速モード (60ms)</option>
-    </select>
-    <div>
-      <button class="btn-listen" id="btnListen">🎤 マイク受信開始</button>
-      <button class="btn-cancel" id="btnCancel" disabled>⏹️ キャンセル</button>
+                <div class="form-group">
+                    <label>📝 文字内容</label>
+                    <textarea id="textInput" placeholder="输入要发送的文字…">你好，世界！Hello World! 🚀</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>🖼️ 图片 (可选, 将自动缩放)</label>
+                    <div class="file-upload">
+                        <button class="btn btn-outline btn-sm">📎 选择图片</button>
+                        <input type="file" id="imageInput" accept="image/*">
+                    </div>
+                    <div class="image-preview" id="imagePreview">
+                        <span class="placeholder">未选择图片</span>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top:8px;">
+                    <label>📡 传输模式</label>
+                    <select id="modeSelect">
+                        <option value="text">文字模式 (快速)</option>
+                        <option value="image">图片模式 (慢速)</option>
+                        <option value="auto">自动 (文字优先)</option>
+                    </select>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="sendBtn">🔊 发送</button>
+                    <button class="btn btn-danger" id="cancelSendBtn" disabled>⏹ 取消</button>
+                    <button class="btn btn-outline btn-sm" id="downloadBtn" disabled>⬇ 下载WAV</button>
+                </div>
+
+                <!-- 发送进度 -->
+                <div class="progress-wrap" id="sendProgressWrap">
+                    <div class="progress-bar" id="sendProgressBar" style="width:0%"></div>
+                </div>
+
+                <div class="status-bar" style="margin-top:8px;">
+                    <span class="status-item"><span class="label">速度</span> <span class="value cyan" id="sendSpeed">—</span></span>
+                    <span class="status-item"><span class="label">数据量</span> <span class="value" id="sendDataSize">—</span></span>
+                    <span class="status-item"><span class="label">纠错率</span> <span class="value orange" id="sendEccRate">—</span></span>
+                </div>
+            </div>
+
+            <!-- ===== 右：接收端 ===== -->
+            <div class="card">
+                <div class="card-title">
+                    <span class="icon">📥</span> 接收端
+                    <span style="margin-left:auto;font-size:12px;font-weight:400;color:#6a8aaa;" id="recvStatus">就绪</span>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-success" id="recvBtn">🎤 开始接收</button>
+                    <button class="btn btn-danger" id="cancelRecvBtn" disabled>⏹ 取消</button>
+                    <button class="btn btn-outline btn-sm" id="clearRecvBtn">🗑 清除</button>
+                </div>
+
+                <div class="progress-wrap" id="recvProgressWrap">
+                    <div class="progress-bar" id="recvProgressBar" style="width:0%"></div>
+                </div>
+
+                <div class="status-bar" style="margin-top:8px;">
+                    <span class="status-item"><span class="label">速度</span> <span class="value cyan" id="recvSpeed">—</span></span>
+                    <span class="status-item"><span class="label">误码率</span> <span class="value orange" id="recvBer">—</span></span>
+                    <span class="status-item"><span class="label">信号</span> <span class="value" id="recvSignal">—</span></span>
+                </div>
+
+                <!-- 接收结果显示 -->
+                <div class="received-content" id="receivedContent">
+                    <span class="empty">等待接收数据…</span>
+                </div>
+
+                <!-- 接收图片预览 -->
+                <div class="image-preview" id="receivedImagePreview">
+                    <span class="placeholder">等待接收图片…</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 设置 & 日志 ===== -->
+        <div style="margin-top:20px;">
+            <div class="card" style="padding:18px 24px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                    <span style="font-weight:600;font-size:15px;color:#c8d8f0;">⚙️ 高级设置</span>
+                    <span style="font-size:12px;color:#6a8aaa;" id="settingsInfo">调整参数影响速度与可靠性</span>
+                </div>
+                <div class="settings-grid">
+                    <div class="setting-item">
+                        <label>🔊 频率范围 <span class="range-value" id="freqRangeLabel">5k–7k Hz</span></label>
+                        <input type="range" id="freqRange" min="0" max="2" value="0" step="1">
+                        <div style="display:flex;justify-content:space-between;font-size:11px;color:#4a6a8a;padding:0 2px;">
+                            <span>柔和 (4k–6k)</span>
+                            <span>标准 (5k–7k)</span>
+                            <span>高频 (17k–19k)</span>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <label>📏 符号周期 <span class="range-value" id="symbolTimeLabel">12 ms</span></label>
+                        <input type="range" id="symbolTime" min="6" max="24" value="12" step="1">
+                        <div style="display:flex;justify-content:space-between;font-size:11px;color:#4a6a8a;padding:0 2px;">
+                            <span>快速 (6ms)</span>
+                            <span>平衡 (12ms)</span>
+                            <span>稳健 (24ms)</span>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <label>🛡️ 纠错强度 <span class="range-value" id="eccStrengthLabel">中 (汉明74)</span></label>
+                        <input type="range" id="eccStrength" min="0" max="2" value="1" step="1">
+                        <div style="display:flex;justify-content:space-between;font-size:11px;color:#4a6a8a;padding:0 2px;">
+                            <span>低 (重复2x)</span>
+                            <span>中 (汉明74)</span>
+                            <span>高 (汉明74+交织)</span>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <label>🎯 抗噪阈值 <span class="range-value" id="noiseThresholdLabel">中</span></label>
+                        <input type="range" id="noiseThreshold" min="0" max="2" value="1" step="1">
+                        <div style="display:flex;justify-content:space-between;font-size:11px;color:#4a6a8a;padding:0 2px;">
+                            <span>低敏感</span>
+                            <span>中</span>
+                            <span>高敏感</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="log-area" id="logArea">
+                <div class="log-entry"><span class="time">[系统]</span> <span class="tag-info">就绪</span> 音波通信已启动</div>
+            </div>
+        </div>
     </div>
-    <div id="status" style="margin-top:10px; font-weight:bold; color:#d9534f;">待機中</div>
-    <div id="outputText" class="result">---</div>
-    <div id="log" class="log">ログがここに表示されます</div>
-  </div>
 
-<script>
-const FREQ_0  = 18500;
-const FREQ_1  = 19000;
-const FREQ_ST = 19500;
+    <script>
+        // ======================================================================
+        //  🎵  音波通信 - 完整 JavaScript 实现
+        //  调制: 2-FSK  |  纠错: (7,4) Hamming + 可选交织
+        //  编码: 文字 UTF-8  /  图片 灰度缩放
+        // ======================================================================
 
-let audioCtx = null;
-function getCtx() {
-  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  return audioCtx;
-}
+        (() => {
+            'use strict';
 
-function encodeHamming(d4) {
-  const d = [(d4>>3)&1, (d4>>2)&1, (d4>>1)&1, d4&1];
-  return (d[0]<<6)|(d[1]<<5)|(d[2]<<4)|(d[3]<<3)|((d[0]^d[1]^d[3])<<2)|((d[0]^d[2]^d[3])<<1)|(d[1]^d[2]^d[3]);
-}
-function decodeHamming(c7) {
-  const b = [];
-  for (let i = 6; i >= 0; i--) b.push((c7 >> i) & 1);
-  const s1 = b[0] ^ b[1] ^ b[3] ^ b[4];
-  const s2 = b[0] ^ b[2] ^ b[3] ^ b[5];
-  const s3 = b[1] ^ b[2] ^ b[3] ^ b[6];
-  const err = (s1 << 2) | (s2 << 1) | s3;
-  if (err >= 1 && err <= 7) b[err - 1] ^= 1;
-  return (b[0]<<3) | (b[1]<<2) | (b[2]<<1) | b[3];
-}
-function byteTo14Bits(val) {
-  const h = encodeHamming((val >> 4) & 0x0F);
-  const l = encodeHamming(val & 0x0F);
-  let bits = [];
-  for (let i = 6; i >= 0; i--) bits.push((h >> i) & 1);
-  for (let i = 6; i >= 0; i--) bits.push((l >> i) & 1);
-  return bits;
-}
+            // ---------- DOM 引用 ----------
+            const $ = id => document.getElementById(id);
+            const textInput = $('textInput');
+            const imageInput = $('imageInput');
+            const imagePreview = $('imagePreview');
+            const modeSelect = $('modeSelect');
+            const sendBtn = $('sendBtn');
+            const cancelSendBtn = $('cancelSendBtn');
+            const downloadBtn = $('downloadBtn');
+            const sendProgressBar = $('sendProgressBar');
+            const sendSpeed = $('sendSpeed');
+            const sendDataSize = $('sendDataSize');
+            const sendEccRate = $('sendEccRate');
+            const sendStatus = $('sendStatus');
 
-function log(msg) {
-  const el = document.getElementById('log');
-  el.textContent += "\n" + msg;
-  el.scrollTop = el.scrollHeight;
-}
+            const recvBtn = $('recvBtn');
+            const cancelRecvBtn = $('cancelRecvBtn');
+            const clearRecvBtn = $('clearRecvBtn');
+            const recvProgressBar = $('recvProgressBar');
+            const recvSpeed = $('recvSpeed');
+            const recvBer = $('recvBer');
+            const recvSignal = $('recvSignal');
+            const recvStatus = $('recvStatus');
+            const receivedContent = $('receivedContent');
+            const receivedImagePreview = $('receivedImagePreview');
 
-// --- 送信処理 ---
-document.getElementById('btnSend').onclick = () => {
-  const ctx = getCtx();
-  const text = document.getElementById('inputText').value;
-  const tBit = parseInt(document.getElementById('txSpeed').value) / 1000;
-  if (!text) return;
+            const logArea = $('logArea');
 
-  const bytes = new TextEncoder().encode(text);
-  let rawBits = [];
-  
-  // ヘッダー3重化
-  byteTo14Bits(bytes.length & 0x7F).forEach(b => { rawBits.push(b); rawBits.push(b); rawBits.push(b); });
-  // データ
-  bytes.forEach(b => byteTo14Bits(b).forEach(bit => rawBits.push(bit)));
+            // 设置控件
+            const freqRange = $('freqRange');
+            const symbolTime = $('symbolTime');
+            const eccStrength = $('eccStrength');
+            const noiseThreshold = $('noiseThreshold');
+            const freqRangeLabel = $('freqRangeLabel');
+            const symbolTimeLabel = $('symbolTimeLabel');
+            const eccStrengthLabel = $('eccStrengthLabel');
+            const noiseThresholdLabel = $('noiseThresholdLabel');
 
-  const now = ctx.currentTime + 0.05;
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.connect(gain);
-  gain.connect(ctx.destination);
+            // ---------- 全局状态 ----------
+            const state = {
+                // 发送
+                sending: false,
+                sendCancel: false,
+                audioBuffer: null,
+                audioContext: null,
+                // 接收
+                receiving: false,
+                recvCancel: false,
+                stream: null,
+                audioCtx: null,
+                // 数据
+                currentImageData: null, // base64
+                currentImageFile: null,
+                receivedImageData: null,
+                // 统计
+                sendBitCount: 0,
+                recvBitCount: 0,
+                recvErrorCount: 0,
+                sendStartTime: 0,
+                recvStartTime: 0,
+                // 设置参数 (实时)
+                params: {
+                    freqMode: 0, // 0=柔和, 1=标准, 2=高频
+                    symbolMs: 12,
+                    eccMode: 1, // 0=重复2x, 1=汉明74, 2=汉明74+交织
+                    noiseThreshold: 1, // 0=低, 1=中, 2=高
+                }
+            };
 
-  // パイロット音 (300ms)
-  osc.frequency.setValueAtTime(FREQ_ST, now);
-  gain.gain.setValueAtTime(0.2, now);
+            // ---------- 频率表 ----------
+            const FREQ_TABLE = {
+                // [freqMode][bit] = Hz
+                0: { 0: 4000, 1: 6000 }, // 柔和
+                1: { 0: 5000, 1: 7000 }, // 标准
+                2: { 0: 17000, 1: 19000 }, // 高频 (人耳不敏感)
+            };
 
-  let t = now + 0.3;
-  rawBits.forEach((bit) => {
-    osc.frequency.setValueAtTime(bit === 1 ? FREQ_1 : FREQ_0, t);
-    t += tBit;
-  });
+            // ---------- 日志 ----------
+            function log(msg, tag = 'info', extra = '') {
+                const time = new Date().toLocaleTimeString();
+                const cls = `tag-${tag}`;
+                const entry = document.createElement('div');
+                entry.className = 'log-entry';
+                entry.innerHTML = `<span class="time">[${time}]</span> <span class="${cls}">${tag.toUpperCase()}</span> ${msg} ${extra}`;
+                logArea.appendChild(entry);
+                logArea.scrollTop = logArea.scrollHeight;
+                if (logArea.children.length > 80) {
+                    logArea.removeChild(logArea.children[0]);
+                }
+            }
 
-  gain.gain.setValueAtTime(0, t);
-  osc.start(now);
-  osc.stop(t);
-  log(`送信開始: ${rawBits.length} bits (${tBit*1000}ms/bit)`);
-};
+            // ---------- 工具：汉明码 (7,4) ----------
+            // 编码: 4位数据 -> 7位码字
+            function hamming74_encode(data4) {
+                const d = (data4 & 0x0F);
+                const p1 = (d >> 3) ^ (d >> 2) ^ (d >> 0) & 1;
+                const p2 = (d >> 3) ^ (d >> 1) ^ (d >> 0) & 1;
+                const p3 = (d >> 2) ^ (d >> 1) ^ (d >> 0) & 1;
+                return (p1 << 6) | (p2 << 5) | ((d >> 3) << 4) | (p3 << 3) | ((d >> 2) << 2) | ((d >> 1) << 1) | (d & 1);
+            }
 
-// --- 受信処理 ---
-let rxTimer = null;
-let mediaStream = null;
+            // 解码: 7位码字 -> 4位数据, 返回 { data, err, corrected }
+            function hamming74_decode(code7) {
+                const c = code7 & 0x7F;
+                const p1 = (c >> 6) & 1;
+                const p2 = (c >> 5) & 1;
+                const d3 = (c >> 4) & 1;
+                const p3 = (c >> 3) & 1;
+                const d2 = (c >> 2) & 1;
+                const d1 = (c >> 1) & 1;
+                const d0 = (c >> 0) & 1;
 
-function stopRx() {
-  if (rxTimer) { clearInterval(rxTimer); rxTimer = null; }
-  if (mediaStream) { mediaStream.getTracks().forEach(t => t.stop()); mediaStream = null; }
-  document.getElementById('btnListen').disabled = false;
-  document.getElementById('btnCancel').disabled = true;
-  document.getElementById('status').textContent = '⏹️ 受信停止';
-}
-document.getElementById('btnCancel').onclick = stopRx;
+                const s1 = p1 ^ d3 ^ d2 ^ d0;
+                const s2 = p2 ^ d3 ^ d1 ^ d0;
+                const s3 = p3 ^ d2 ^ d1 ^ d0;
+                const syndrome = (s1 << 2) | (s2 << 1) | s3;
 
-document.getElementById('btnListen').onclick = async () => {
-  const tBitMs = parseInt(document.getElementById('rxSpeed').value);
-  try {
-    mediaStream = await navigator.mediaDevices.getUserMedia({
-      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
-    });
-  } catch(e) {
-    log('マイク拒否: ' + e.message);
-    return;
-  }
+                let corrected = false;
+                let data = (d3 << 3) | (d2 << 2) | (d1 << 1) | d0;
 
-  document.getElementById('btnListen').disabled = true;
-  document.getElementById('btnCancel').disabled = false;
-  document.getElementById('status').textContent = '🎤 受信待機中...';
+                if (syndrome !== 0) {
+                    // 有错误，尝试纠正 (1位纠错)
+                    const bitPos = [
+                        -1, 6, 5, 3, 4, 2, 1, 0 // syndrome -> 位位置
+                    ];
+                    const pos = bitPos[syndrome] || -1;
+                    if (pos >= 0) {
+                        const mask = 1 << pos;
+                        const newC = c ^ mask;
+                        // 重新提取数据
+                        const nd3 = (newC >> 4) & 1;
+                        const nd2 = (newC >> 2) & 1;
+                        const nd1 = (newC >> 1) & 1;
+                        const nd0 = (newC >> 0) & 1;
+                        data = (nd3 << 3) | (nd2 << 2) | (nd1 << 1) | nd0;
+                        corrected = true;
+                    } else {
+                        // 无法纠正 (2位错误)
+                        return { data: 0, err: true, corrected: false };
+                    }
+                }
+                return { data, err: false, corrected };
+            }
 
-  const ctx = getCtx();
-  const source = ctx.createMediaStreamSource(mediaStream);
-  const analyser = ctx.createAnalyser();
-  analyser.fftSize = 2048;
-  source.connect(analyser);
+            // ---------- 交织 / 解交织 (深度4) ----------
+            function interleave(bits, depth = 4) {
+                // bits: Uint8Array of 0/1, 长度是 depth 的倍数
+                const n = bits.length;
+                const cols = n / depth;
+                const out = new Uint8Array(n);
+                let idx = 0;
+                for (let c = 0; c < cols; c++) {
+                    for (let r = 0; r < depth; r++) {
+                        out[idx++] = bits[r * cols + c];
+                    }
+                }
+                return out;
+            }
 
-  const binSize = ctx.sampleRate / analyser.fftSize;
-  const b0  = Math.round(FREQ_0 / binSize);
-  const b1  = Math.round(FREQ_1 / binSize);
-  const bST = Math.round(FREQ_ST / binSize);
+            function deinterleave(bits, depth = 4) {
+                const n = bits.length;
+                const cols = n / depth;
+                const out = new Uint8Array(n);
+                let idx = 0;
+                for (let r = 0; r < depth; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        out[idx++] = bits[r * cols + c];
+                    }
+                }
+                return out;
+            }
 
-  const data = new Uint8Array(analyser.frequencyBinCount);
-  let state = 'idle';
-  let bitStream = [];
+            // ---------- 数据编码器 ----------
+            function encodeData(dataBytes, params) {
+                // dataBytes: Uint8Array
+                // 返回: { bits: Uint8Array, stats: { totalBits, dataBits, eccBits } }
 
-  rxTimer = setInterval(() => {
-    analyser.getByteFrequencyData(data);
-    const p0 = data[b0], p1 = data[b1], pST = data[bST];
+                const { eccMode } = params;
 
-    if (state === 'idle') {
-      if (pST > 30) {
-        state = 'rx';
-        bitStream = [];
-        log('超音波パイロット信号を検出');
-      }
-    } else if (state === 'rx') {
-      bitStream.push(p1 > p0 ? 1 : 0);
-      document.getElementById('status').textContent = `受信中: ${bitStream.length} bits`;
+                // 1. 将字节转为位
+                let bits = [];
+                for (const b of dataBytes) {
+                    for (let i = 7; i >= 0; i--) {
+                        bits.push((b >> i) & 1);
+                    }
+                }
 
-      // ヘッダー判定 (14×3 = 42ビット到達時)
-      if (bitStream.length >= 42) {
-        let hBits = [];
-        for(let i=0; i<42; i+=3) {
-          hBits.push((bitStream[i]+bitStream[i+1]+bitStream[i+2])>=2 ? 1 : 0);
-        }
-        const dataLen = decodeByte14(hBits);
-        const total = 42 + (dataLen * 14);
+                const dataBitCount = bits.length;
+                let encodedBits = [];
 
-        if (dataLen > 0 && bitStream.length >= total) {
-          let bytes = [];
-          for(let i=42; i<total; i+=14) {
-            bytes.push(decodeByte14(bitStream.slice(i, i+14)));
-          }
-          const text = new TextDecoder().decode(new Uint8Array(bytes));
-          document.getElementById('outputText').textContent = text;
-          log('✅ 受信成功: ' + text);
-          stopRx();
-        }
-      }
-    }
-  }, tBitMs);
-};
+                if (eccMode === 0) {
+                    // 重复2x
+                    for (const b of bits) {
+                        encodedBits.push(b, b);
+                    }
+                    const stats = { totalBits: encodedBits.length, dataBits: dataBitCount, eccBits: encodedBits.length -
+                            dataBitCount };
+                    return { bits: new Uint8Array(encodedBits), stats };
+                } else if (eccMode === 1 || eccMode === 2) {
+                    // (7,4) 汉明码
+                    // 每4位一组
+                    const padded = [...bits];
+                    while (padded.length % 4 !== 0) padded.push(0);
+                    const groups = padded.length / 4;
+                    const encoded = [];
+                    for (let g = 0; g < groups; g++) {
+                        let d = 0;
+                        for (let i = 0; i < 4; i++) {
+                            d = (d << 1) | padded[g * 4 + i];
+                        }
+                        const code = hamming74_encode(d);
+                        for (let i = 6; i >= 0; i--) {
+                            encoded.push((code >> i) & 1);
+                        }
+                    }
+                    // 交织?
+                    let finalBits = new Uint8Array(encoded);
+                    if (eccMode === 2) {
+                        // 交织深度4
+                        finalBits = interleave(finalBits, 4);
+                    }
+                    const stats = { totalBits: finalBits.length, dataBits: dataBitCount, eccBits: finalBits.length -
+                            dataBitCount };
+                    return { bits: finalBits, stats };
+                }
 
-function decodeByte14(bits14) {
-  if (bits14.length < 14) return 0;
-  const h = bits14.slice(0, 7).reduce((acc, b) => (acc << 1) | b, 0);
-  const l = bits14.slice(7, 14).reduce((acc, b) => (acc << 1) | b, 0);
-  return (decodeHamming(h) << 4) | decodeHamming(l);
-}
-</script>
+                return { bits: new Uint8Array(bits), stats: { totalBits: bits.length, dataBits: bits.length, eccBits: 0 } };
+            }
+
+            // ---------- 数据解码器 ----------
+            function decodeData(bits, params) {
+                // bits: Uint8Array of 0/1
+                // 返回: { data: Uint8Array, errors: number, corrected: number }
+
+                const { eccMode } = params;
+                let decodedBits = [];
+
+                if (eccMode === 0) {
+                    // 重复2x: 多数表决
+                    for (let i = 0; i < bits.length; i += 2) {
+                        const b0 = bits[i] || 0;
+                        const b1 = bits[i + 1] || 0;
+                        decodedBits.push(b0 & b1); // AND -> 保守
+                    }
+                } else if (eccMode === 1 || eccMode === 2) {
+                    let workBits = bits;
+                    if (eccMode === 2) {
+                        // 解交织
+                        workBits = deinterleave(bits, 4);
+                    }
+                    // 每7位一组解码
+                    const groups = Math.floor(workBits.length / 7);
+                    let errors = 0,
+                        corrected = 0;
+                    for (let g = 0; g < groups; g++) {
+                        let code = 0;
+                        for (let i = 0; i < 7; i++) {
+                            code = (code << 1) | (workBits[g * 7 + i] || 0);
+                        }
+                        const result = hamming74_decode(code);
+                        if (result.err) {
+                            errors++;
+                            // 填充0
+                            for (let i = 0; i < 4; i++) decodedBits.push(0);
+                        } else {
+                            if (result.corrected) corrected++;
+                            for (let i = 3; i >= 0; i--) {
+                                decodedBits.push((result.data >> i) & 1);
+                            }
+                        }
+                    }
+                    // 记录统计
+                    state.recvErrorCount = errors;
+                    state.recvCorrectedCount = corrected;
+                } else {
+                    // 无纠错
+                    decodedBits = Array.from(bits);
+                }
+
+                // 转回字节
+                const byteArr = [];
+                for (let i = 0; i < decodedBits.length; i += 8) {
+                    let b = 0;
+                    for (let j = 0; j < 8; j++) {
+                        b = (b << 1) | (decodedBits[i + j] || 0);
+                    }
+                    byteArr.push(b);
+                }
+                return { data: new Uint8Array(byteArr), errors: state.recvErrorCount || 0, corrected: state
+                        .recvCorrectedCount || 0 };
+            }
+
+            // ---------- FSK 调制 (生成音频) ----------
+            function generateFSK(bits, params, sampleRate = 44100) {
+                // bits: Uint8Array of 0/1
+                // 返回 Float32Array 音频数据
+
+                const { freqMode, symbolMs } = params;
+                const freq = FREQ_TABLE[freqMode] || FREQ_TABLE[1];
+                const f0 = freq[0];
+                const f1 = freq[1];
+                const samplesPerSymbol = Math.floor(sampleRate * symbolMs / 1000);
+                const totalSamples = bits.length * samplesPerSymbol;
+
+                // 加前导同步: 10101010... 16个符号
+                const syncBits = 16;
+                const syncSamples = syncBits * samplesPerSymbol;
+                const totalWithSync = totalSamples + syncSamples;
+
+                const audio = new Float32Array(totalWithSync);
+                let idx = 0;
+
+                // 同步头
+                for (let i = 0; i < syncBits; i++) {
+                    const bit = i % 2;
+                    const f = bit ? f1 : f0;
+                    for (let s = 0; s < samplesPerSymbol; s++) {
+                        const t = s / sampleRate;
+                        audio[idx++] = Math.sin(2 * Math.PI * f * t) * 0.6;
+                    }
+                }
+
+                // 数据
+                for (const bit of bits) {
+                    const f = bit ? f1 : f0;
+                    for (let s = 0; s < samplesPerSymbol; s++) {
+                        const t = s / sampleRate;
+                        audio[idx++] = Math.sin(2 * Math.PI * f * t) * 0.6;
+                    }
+                }
+
+                // 淡入淡出 (防止爆音)
+                const fadeLen = Math.min(256, audio.length);
+                for (let i = 0; i < fadeLen; i++) {
+                    const gain = i / fadeLen;
+                    audio[i] *= gain;
+                    audio[audio.length - 1 - i] *= gain;
+                }
+
+                return audio;
+            }
+
+            // ---------- FSK 解调 (分析音频) ----------
+            function demodulateFSK(audioData, params, sampleRate = 44100) {
+                // audioData: Float32Array
+                // 返回: { bits: Uint8Array, confidence: number }
+
+                const { freqMode, symbolMs, noiseThreshold } = params;
+                const freq = FREQ_TABLE[freqMode] || FREQ_TABLE[1];
+                const f0 = freq[0];
+                const f1 = freq[1];
+                const samplesPerSymbol = Math.floor(sampleRate * symbolMs / 1000);
+                const numSymbols = Math.floor(audioData.length / samplesPerSymbol);
+
+                if (numSymbols < 16) return { bits: new Uint8Array(0), confidence: 0 };
+
+                const bits = [];
+                let confidenceSum = 0;
+
+                // 检测同步头 (找最佳对齐)
+                // 简单方法: 检测前16个符号的交替模式
+                let bestOffset = 0;
+                let bestScore = -1;
+                const searchRange = Math.min(8, Math.floor(samplesPerSymbol / 4));
+
+                for (let offset = 0; offset < searchRange; offset++) {
+                    let score = 0;
+                    for (let i = 0; i < 16 && i < numSymbols; i++) {
+                        const start = i * samplesPerSymbol + offset;
+                        if (start + samplesPerSymbol > audioData.length) break;
+                        // 计算能量在f0和f1
+                        let e0 = 0,
+                            e1 = 0;
+                        for (let s = 0; s < samplesPerSymbol; s++) {
+                            const val = audioData[start + s] || 0;
+                            e0 += val * Math.sin(2 * Math.PI * f0 * s / sampleRate);
+                            e1 += val * Math.sin(2 * Math.PI * f1 * s / sampleRate);
+                        }
+                        const expected = i % 2;
+                        if (expected === 0 && e0 > e1) score++;
+                        else if (expected === 1 && e1 > e0) score++;
+                    }
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestOffset = offset;
+                    }
+                }
+
+                // 如果同步得分太低，可能没有有效信号
+                if (bestScore < 8) {
+                    return { bits: new Uint8Array(0), confidence: 0 };
+                }
+
+                // 从同步头之后开始解调数据
+                const startIdx = 16 * samplesPerSymbol + bestOffset;
+                const dataSymbols = Math.floor((audioData.length - startIdx) / samplesPerSymbol);
+
+                // 阈值系数
+                const thresholdFactor = [0.8, 1.0, 1.2][noiseThreshold] || 1.0;
+
+                for (let i = 0; i < dataSymbols; i++) {
+                    const start = startIdx + i * samplesPerSymbol;
+                    if (start + samplesPerSymbol > audioData.length) break;
+
+                    let e0 = 0,
+                        e1 = 0;
+                    for (let s = 0; s < samplesPerSymbol; s++) {
+                        const val = audioData[start + s] || 0;
+                        e0 += val * Math.sin(2 * Math.PI * f0 * s / sampleRate);
+                        e1 += val * Math.sin(2 * Math.PI * f1 * s / sampleRate);
+                    }
+                    // 归一化
+                    const total = Math.abs(e0) + Math.abs(e1) + 1e-6;
+                    const ratio = Math.abs(e1 - e0) / total;
+                    const bit = e1 > e0 * thresholdFactor ? 1 : 0;
+                    bits.push(bit);
+                    confidenceSum += ratio;
+                }
+
+                const confidence = bits.length > 0 ? confidenceSum / bits.length : 0;
+                return { bits: new Uint8Array(bits), confidence };
+            }
+
+            // ---------- 音频播放 ----------
+            function playAudio(audioData, sampleRate = 44100) {
+                return new Promise((resolve, reject) => {
+                    try {
+                        const ctx = new(window.AudioContext || window.webkitAudioContext)();
+                        state.audioContext = ctx;
+                        const buffer = ctx.createBuffer(1, audioData.length, sampleRate);
+                        buffer.copyToChannel(audioData, 0);
+                        const source = ctx.createBufferSource();
+                        source.buffer = buffer;
+                        source.connect(ctx.destination);
+                        source.onended = () => {
+                            resolve();
+                        };
+                        source.start(0);
+                        state.audioSource = source;
+                        // 取消处理
+                        const checkCancel = () => {
+                            if (state.sendCancel) {
+                                try { source.stop(); } catch (e) {}
+                                resolve();
+                            }
+                        };
+                        const interval = setInterval(checkCancel, 100);
+                        source.onended = () => {
+                            clearInterval(interval);
+                            resolve();
+                        };
+                    } catch (e) {
+                        reject(e);
+                    }
+                });
+            }
+
+            // ---------- 保存为WAV ----------
+            function saveWAV(audioData, sampleRate = 44100) {
+                // 创建WAV文件
+                const numChannels = 1;
+                const bitsPerSample = 32;
+                const bytesPerSample = bitsPerSample / 8;
+                const dataSize = audioData.length * bytesPerSample;
+                const headerSize = 44;
+                const totalSize = headerSize + dataSize;
+
+                const buffer = new ArrayBuffer(totalSize);
+                const view = new DataView(buffer);
+
+                // RIFF
+                writeString(view, 0, 'RIFF');
+                view.setUint32(4, totalSize - 8, true);
+                writeString(view, 8, 'WAVE');
+                writeString(view, 12, 'fmt ');
+                view.setUint32(16, 16, true);
+                view.setUint16(20, 3, true); // 32-bit float
+                view.setUint16(22, numChannels, true);
+                view.setUint32(24, sampleRate, true);
+                view.setUint32(28, sampleRate * numChannels * bytesPerSample, true);
+                view.setUint16(32, numChannels * bytesPerSample, true);
+                view.setUint16(34, bitsPerSample, true);
+                writeString(view, 36, 'data');
+                view.setUint32(40, dataSize, true);
+
+                // 数据
+                const offset = 44;
+                for (let i = 0; i < audioData.length; i++) {
+                    view.setFloat32(offset + i * 4, audioData[i], true);
+                }
+
+                const blob = new Blob([buffer], { type: 'audio/wav' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `音波数据_${Date.now()}.wav`;
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+
+            function writeString(view, offset, str) {
+                for (let i = 0; i < str.length; i++) {
+                    view.setUint8(offset + i, str.charCodeAt(i));
+                }
+            }
+
+            // ---------- 发送流程 ----------
+            async function startSend() {
+                if (state.sending) return;
+
+                // 收集数据
+                const mode = modeSelect.value;
+                let dataBytes = null;
+                let dataType = 'text';
+                let imageDataUrl = null;
+
+                if (mode === 'image' || (mode === 'auto' && state.currentImageData)) {
+                    // 图片模式
+                    if (!state.currentImageData) {
+                        log('请先选择一张图片', 'warn');
+                        return;
+                    }
+                    dataType = 'image';
+                    // 将图片转为灰度字节
+                    try {
+                        const imgData = await loadImageData(state.currentImageData);
+                        dataBytes = imageToGrayscaleBytes(imgData, 48, 48); // 48x48 灰度
+                        log(`图片已转换为 ${dataBytes.length} 字节 (48x48 灰度)`, 'info');
+                    } catch (e) {
+                        log('图片处理失败: ' + e.message, 'err');
+                        return;
+                    }
+                } else {
+                    // 文字模式
+                    const text = textInput.value.trim() || 'Hello World!';
+                    const encoder = new TextEncoder();
+                    dataBytes = encoder.encode(text);
+                    dataType = 'text';
+                    log(`文字 "${text.substring(0, 30)}${text.length>30?'...':''}" 编码为 ${dataBytes.length} 字节`, 'info');
+                }
+
+                if (!dataBytes || dataBytes.length === 0) {
+                    log('没有数据可发送', 'warn');
+                    return;
+                }
+
+                // 准备参数
+                const params = {
+                    freqMode: parseInt(freqRange.value) || 0,
+                    symbolMs: parseInt(symbolTime.value) || 12,
+                    eccMode: parseInt(eccStrength.value) || 1,
+                    noiseThreshold: parseInt(noiseThreshold.value) || 1,
+                };
+
+                // 编码
+                const { bits, stats } = encodeData(dataBytes, params);
+                log(`编码完成: ${stats.dataBits} 数据位 + ${stats.eccBits} 纠错位 = ${stats.totalBits} 位`, 'info');
+
+                // 更新UI
+                state.sending = true;
+                state.sendCancel = false;
+                sendBtn.disabled = true;
+                cancelSendBtn.disabled = false;
+                downloadBtn.disabled = true;
+                sendProgressBar.style.width = '0%';
+                sendStatus.textContent = '发送中…';
+                sendDataSize.textContent = `${(stats.totalBits/8).toFixed(0)} B`;
+                sendEccRate.textContent = `${(stats.eccBits/stats.totalBits*100).toFixed(0)}%`;
+
+                const startTime = performance.now();
+                state.sendStartTime = startTime;
+                let lastUpdate = startTime;
+
+                // 生成音频
+                const sampleRate = 44100;
+                const audioData = generateFSK(bits, params, sampleRate);
+                const duration = audioData.length / sampleRate;
+
+                // 显示预计时间
+                log(`音频长度: ${duration.toFixed(1)}秒, 有效速率: ${(stats.dataBits/duration/8).toFixed(1)} B/s`, 'info');
+
+                // 播放
+                try {
+                    // 进度模拟
+                    const progressInterval = setInterval(() => {
+                        if (state.sendCancel) return;
+                        const elapsed = (performance.now() - startTime) / 1000;
+                        const pct = Math.min(100, (elapsed / duration) * 100);
+                        sendProgressBar.style.width = pct + '%';
+                        // 速度
+                        const speed = elapsed > 0 ? (stats.dataBits / 8 / elapsed) : 0;
+                        sendSpeed.textContent = speed.toFixed(1) + ' B/s';
+                    }, 100);
+
+                    state.audioBuffer = audioData;
+                    await playAudio(audioData, sampleRate);
+
+                    clearInterval(progressInterval);
+                    sendProgressBar.style.width = '100%';
+
+                    if (state.sendCancel) {
+                        log('发送已取消', 'warn');
+                        sendStatus.textContent = '已取消';
+                    } else {
+                        const elapsed = (performance.now() - startTime) / 1000;
+                        const speed = stats.dataBits / 8 / elapsed;
+                        log(`✅ 发送完成! 用时 ${elapsed.toFixed(1)}s, 平均 ${speed.toFixed(1)} B/s`, 'ok');
+                        sendStatus.textContent = '✅ 完成';
+                        sendSpeed.textContent = speed.toFixed(1) + ' B/s';
+                        // 允许下载
+                        downloadBtn.disabled = false;
+                        state.lastAudioData = audioData;
+                    }
+                } catch (e) {
+                    log('发送失败: ' + e.message, 'err');
+                    sendStatus.textContent = '❌ 失败';
+                }
+
+                state.sending = false;
+                sendBtn.disabled = false;
+                cancelSendBtn.disabled = true;
+                if (!state.sendCancel) {
+                    // 保留下载
+                } else {
+                    downloadBtn.disabled = true;
+                }
+            }
+
+            // ---------- 加载图片数据 ----------
+            function loadImageData(dataUrl) {
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        ctx.drawImage(img, 0, 0);
+                        const imageData = ctx.getImageData(0, 0, img.width, img.height);
+                        resolve(imageData);
+                    };
+                    img.onerror = () => reject(new Error('图片加载失败'));
+                    img.src = dataUrl;
+                });
+            }
+
+            // ---------- 图片转灰度字节 ----------
+            function imageToGrayscaleBytes(imageData, targetW, targetH) {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = targetW;
+                canvas.height = targetH;
+                ctx.drawImage(imageData, 0, 0, targetW, targetH);
+                const data = ctx.getImageData(0, 0, targetW, targetH);
+                const pixels = data.data;
+                const bytes = new Uint8Array(targetW * targetH);
+                for (let i = 0; i < targetW * targetH; i++) {
+                    const r = pixels[i * 4];
+                    const g = pixels[i * 4 + 1];
+                    const b = pixels[i * 4 + 2];
+                    bytes[i] = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+                }
+                return bytes;
+            }
+
+            // ---------- 灰度字节转图片 ----------
+            function grayscaleBytesToImage(bytes, w, h) {
+                const canvas = document.createElement('canvas');
+                canvas.width = w;
+                canvas.height = h;
+                const ctx = canvas.getContext('2d');
+                const imageData = ctx.createImageData(w, h);
+                const data = imageData.data;
+                for (let i = 0; i < w * h; i++) {
+                    const val = bytes[i] || 0;
+                    const idx = i * 4;
+                    data[idx] = val;
+                    data[idx + 1] = val;
+                    data[idx + 2] = val;
+                    data[idx + 3] = 255;
+                }
+                ctx.putImageData(imageData, 0, 0);
+                return canvas.toDataURL('image/png');
+            }
+
+            // ---------- 接收流程 ----------
+            async function startReceive() {
+                if (state.receiving) return;
+
+                try {
+                    // 请求麦克风
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        audio: {
+                            echoCancellation: false,
+                            noiseSuppression: false,
+                            autoGainControl: false,
+                        }
+                    });
+                    state.stream = stream;
+
+                    const audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+                    state.audioCtx = audioCtx;
+                    const source = audioCtx.createMediaStreamSource(stream);
+
+                    // 使用ScriptProcessorNode处理
+                    const sampleRate = audioCtx.sampleRate;
+                    const bufferSize = 8192;
+                    const processor = audioCtx.createScriptProcessor(bufferSize, 1, 1);
+
+                    const params = {
+                        freqMode: parseInt(freqRange.value) || 0,
+                        symbolMs: parseInt(symbolTime.value) || 12,
+                        eccMode: parseInt(eccStrength.value) || 1,
+                        noiseThreshold: parseInt(noiseThreshold.value) || 1,
+                    };
+
+                    // 收集音频数据
+                    let audioBuffer = [];
+                    const minSamples = Math.floor(sampleRate * 1.5); // 至少1.5秒
+                    let collecting = true;
+                    let recvStartTime = performance.now();
+                    state.recvStartTime = recvStartTime;
+                    state.receiving = true;
+                    state.recvCancel = false;
+
+                    recvBtn.disabled = true;
+                    cancelRecvBtn.disabled = false;
+                    recvStatus.textContent = '接收中…';
+                    recvProgressBar.style.width = '0%';
+                    receivedContent.innerHTML = '<span class="empty">🎤 正在监听…</span>';
+                    receivedImagePreview.innerHTML = '<span class="placeholder">等待接收…</span>';
+
+                    log('开始接收, 采样率: ' + sampleRate + ' Hz', 'info');
+
+                    let lastLogTime = Date.now();
+                    let chunkCount = 0;
+
+                    processor.onaudioprocess = (e) => {
+                        if (state.recvCancel || !collecting) return;
+                        const input = e.inputBuffer.getChannelData(0);
+                        // 复制数据
+                        for (let i = 0; i < input.length; i++) {
+                            audioBuffer.push(input[i]);
+                        }
+                        chunkCount++;
+
+                        // 进度 (基于时间)
+                        const elapsed = (performance.now() - recvStartTime) / 1000;
+                        if (elapsed > 0.5) {
+                            const pct = Math.min(100, (elapsed / 20) * 100);
+                            recvProgressBar.style.width = pct + '%';
+                            // 信号强度
+                            if (audioBuffer.length > 0) {
+                                const last = audioBuffer.slice(-4096);
+                                let sum = 0;
+                                for (const v of last) sum += Math.abs(v);
+                                const avg = sum / last.length;
+                                recvSignal.textContent = (avg * 100).toFixed(1) + '%';
+                            }
+                        }
+
+                        // 每2秒尝试解调一次 (但保留数据)
+                        const now = Date.now();
+                        if (now - lastLogTime > 2000 && audioBuffer.length > minSamples) {
+                            lastLogTime = now;
+                            // 尝试解调
+                            const result = demodulateFSK(new Float32Array(audioBuffer), params, sampleRate);
+                            if (result.bits.length > 0 && result.confidence > 0.3) {
+                                log(`检测到信号, 置信度 ${(result.confidence*100).toFixed(0)}%, 位数 ${result.bits.length}`,
+                                    'info');
+                            }
+                        }
+                    };
+
+                    source.connect(processor);
+                    processor.connect(audioCtx.destination);
+
+                    // 等待足够数据或用户取消
+                    await new Promise((resolve) => {
+                        const checkDone = () => {
+                            if (state.recvCancel) {
+                                collecting = false;
+                                resolve();
+                                return;
+                            }
+                            const elapsed = (performance.now() - recvStartTime) / 1000;
+                            // 如果超过30秒或数据足够多且检测到有效信号
+                            if (elapsed > 30) {
+                                collecting = false;
+                                resolve();
+                                return;
+                            }
+                            // 如果数据量足够且检测到信号结束
+                            if (audioBuffer.length > minSamples * 2) {
+                                // 检查末尾是否有静音
+                                const tail = audioBuffer.slice(-sampleRate);
+                                let tailEnergy = 0;
+                                for (const v of tail) tailEnergy += Math.abs(v);
+                                tailEnergy /= tail.length;
+                                if (tailEnergy < 0.01 && audioBuffer.length > minSamples * 3) {
+                                    collecting = false;
+                                    resolve();
+                                    return;
+                                }
+                            }
+                            setTimeout(checkDone, 300);
+                        };
+                        checkDone();
+                    });
+
+                    // 停止处理
+                    processor.disconnect();
+                    source.disconnect();
+                    stream.getTracks().forEach(t => t.stop());
+
+                    if (state.recvCancel) {
+                        log('接收已取消', 'warn');
+                        recvStatus.textContent = '已取消';
+                        state.receiving = false;
+                        recvBtn.disabled = false;
+                        cancelRecvBtn.disabled = true;
+                        return;
+                    }
+
+                    // 解调
+                    log(`采集到 ${audioBuffer.length} 个样本, 开始解调...`, 'info');
+                    const audioData = new Float32Array(audioBuffer);
+                    const result = demodulateFSK(audioData, params, sampleRate);
+
+                    if (result.bits.length === 0 || result.confidence < 0.2) {
+                        log('未检测到有效信号, 请确保发送端正在播放', 'warn');
+                        receivedContent.innerHTML = '<span class="empty">❌ 未检测到信号</span>';
+                        recvStatus.textContent = '❌ 无信号';
+                        state.receiving = false;
+                        recvBtn.disabled = false;
+                        cancelRecvBtn.disabled = true;
+                        return;
+                    }
+
+                    log(`解调完成: ${result.bits.length} 位, 置信度 ${(result.confidence*100).toFixed(0)}%`, 'info');
+
+                    // 解码
+                    const decodeResult = decodeData(result.bits, params);
+                    const dataBytes = decodeResult.data;
+
+                    // 计算BER
+                    const totalBits = result.bits.length;
+                    const errorBits = decodeResult.errors * 7 || 0;
+                    const ber = totalBits > 0 ? errorBits / totalBits : 0;
+                    recvBer.textContent = (ber * 100).toFixed(2) + '%';
+
+                    // 尝试还原数据
+                    let success = false;
+                    if (dataBytes.length > 0) {
+                        // 尝试作为文字
+                        try {
+                            const decoder = new TextDecoder();
+                            const text = decoder.decode(dataBytes);
+                            // 检查是否可打印
+                            const printable = text.split('').filter(c => c.charCodeAt(0) >= 32 || c === '\n' || c === '\r')
+                                .length;
+                            if (printable > text.length * 0.5 && text.length > 0) {
+                                receivedContent.innerHTML = `<div style="white-space:pre-wrap;">${escapeHtml(text)}</div>`;
+                                log(`✅ 还原文字: "${text.substring(0, 50)}${text.length>50?'...':''}"`, 'ok');
+                                success = true;
+                            }
+                        } catch (e) {}
+
+                        // 尝试作为图片 (48x48 灰度)
+                        if (!success && dataBytes.length === 48 * 48) {
+                            try {
+                                const imgUrl = grayscaleBytesToImage(dataBytes, 48, 48);
+                                receivedImagePreview.innerHTML =
+                                    `<img src="${imgUrl}" alt="接收图片" style="max-height:200px;">`;
+                                log('✅ 还原图片 (48x48 灰度)', 'ok');
+                                success = true;
+                            } catch (e) {}
+                        }
+
+                        // 如果数据长度接近48x48, 尝试填充
+                        if (!success && dataBytes.length > 48 * 48 * 0.8 && dataBytes.length < 48 * 48 * 1.2) {
+                            try {
+                                const padded = new Uint8Array(48 * 48);
+                                const copyLen = Math.min(dataBytes.length, 48 * 48);
+                                for (let i = 0; i < copyLen; i++) padded[i] = dataBytes[i];
+                                const imgUrl = grayscaleBytesToImage(padded, 48, 48);
+                                receivedImagePreview.innerHTML =
+                                    `<img src="${imgUrl}" alt="接收图片" style="max-height:200px;">`;
+                                log('✅ 还原图片 (48x48 灰度, 部分填充)', 'ok');
+                                success = true;
+                            } catch (e) {}
+                        }
+
+                        if (!success) {
+                            // 显示十六进制
+                            const hex = Array.from(dataBytes.slice(0, 64)).map(b => b.toString(16).padStart(2, '0')).join(' ');
+                            receivedContent.innerHTML =
+                                `<div style="font-family:monospace;font-size:12px;color:#8aaec8;">二进制数据 (${dataBytes.length} 字节)<br>${hex}${dataBytes.length>64?' …':''}</div>`;
+                            log('接收到二进制数据, 无法识别为文字或图片', 'warn');
+                        }
+                    } else {
+                        receivedContent.innerHTML = '<span class="empty">❌ 解码失败, 数据为空</span>';
+                        log('解码失败', 'err');
+                    }
+
+                    const elapsed = (performance.now() - recvStartTime) / 1000;
+                    const speed = dataBytes.length / elapsed;
+                    recvSpeed.textContent = speed.toFixed(1) + ' B/s';
+                    recvStatus.textContent = success ? '✅ 完成' : '⚠️ 部分成功';
+                    recvProgressBar.style.width = '100%';
+
+                    log(`接收完成, 用时 ${elapsed.toFixed(1)}s, 速度 ${speed.toFixed(1)} B/s`, 'ok');
+
+                } catch (e) {
+                    log('接收失败: ' + e.message, 'err');
+                    console.error(e);
+                    recvStatus.textContent = '❌ 错误';
+                    receivedContent.innerHTML = `<span class="empty">❌ 错误: ${e.message}</span>`;
+                }
+
+                state.receiving = false;
+                recvBtn.disabled = false;
+                cancelRecvBtn.disabled = true;
+            }
+
+            // ---------- 辅助: 转义HTML ----------
+            function escapeHtml(str) {
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            }
+
+            // ---------- UI 事件绑定 ----------
+            // 图片选择
+            imageInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const dataUrl = ev.target.result;
+                    state.currentImageData = dataUrl;
+                    state.currentImageFile = file;
+                    imagePreview.innerHTML = `<img src="${dataUrl}" alt="预览" style="max-height:120px;">`;
+                    log(`图片已加载: ${file.name} (${(file.size/1024).toFixed(1)} KB)`, 'info');
+                    // 自动切换到图片模式
+                    if (modeSelect.value === 'auto') {
+                        modeSelect.value = 'image';
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+
+            // 发送按钮
+            sendBtn.addEventListener('click', startSend);
+
+            // 取消发送
+            cancelSendBtn.addEventListener('click', () => {
+                state.sendCancel = true;
+                if (state.audioSource) {
+                    try { state.audioSource.stop(); } catch (e) {}
+                }
+                if (state.audioContext) {
+                    try { state.audioContext.close(); } catch (e) {}
+                }
+                log('发送已取消 (用户操作)', 'warn');
+                sendStatus.textContent = '已取消';
+                sendBtn.disabled = false;
+                cancelSendBtn.disabled = true;
+                state.sending = false;
+            });
+
+            // 下载按钮
+            downloadBtn.addEventListener('click', () => {
+                if (state.lastAudioData) {
+                    saveWAV(state.lastAudioData, 44100);
+                    log('WAV文件已下载', 'info');
+                }
+            });
+
+            // 接收按钮
+            recvBtn.addEventListener('click', startReceive);
+
+            // 取消接收
+            cancelRecvBtn.addEventListener('click', () => {
+                state.recvCancel = true;
+                if (state.stream) {
+                    state.stream.getTracks().forEach(t => t.stop());
+                }
+                if (state.audioCtx) {
+                    try { state.audioCtx.close(); } catch (e) {}
+                }
+                log('接收已取消 (用户操作)', 'warn');
+                recvStatus.textContent = '已取消';
+                recvBtn.disabled = false;
+                cancelRecvBtn.disabled = true;
+                state.receiving = false;
+            });
+
+            // 清除接收
+            clearRecvBtn.addEventListener('click', () => {
+                receivedContent.innerHTML = '<span class="empty">等待接收数据…</span>';
+                receivedImagePreview.innerHTML = '<span class="placeholder">等待接收图片…</span>';
+                recvBer.textContent = '—';
+                recvSpeed.textContent = '—';
+                recvSignal.textContent = '—';
+                recvProgressBar.style.width = '0%';
+                recvStatus.textContent = '就绪';
+                log('已清除接收内容', 'info');
+            });
+
+            // ---------- 设置控件联动 ----------
+            freqRange.addEventListener('input', () => {
+                const v = parseInt(freqRange.value);
+                const labels = ['柔和 (4k–6k)', '标准 (5k–7k)', '高频 (17k–19k)'];
+                freqRangeLabel.textContent = labels[v] || labels[0];
+                state.params.freqMode = v;
+            });
+            symbolTime.addEventListener('input', () => {
+                const v = parseInt(symbolTime.value);
+                symbolTimeLabel.textContent = v + ' ms';
+                state.params.symbolMs = v;
+            });
+            eccStrength.addEventListener('input', () => {
+                const v = parseInt(eccStrength.value);
+                const labels = ['低 (重复2x)', '中 (汉明74)', '高 (汉明74+交织)'];
+                eccStrengthLabel.textContent = labels[v] || labels[0];
+                state.params.eccMode = v;
+            });
+            noiseThreshold.addEventListener('input', () => {
+                const v = parseInt(noiseThreshold.value);
+                const labels = ['低敏感', '中', '高敏感'];
+                noiseThresholdLabel.textContent = labels[v] || labels[0];
+                state.params.noiseThreshold = v;
+            });
+
+            // 初始化显示
+            freqRange.dispatchEvent(new Event('input'));
+            symbolTime.dispatchEvent(new Event('input'));
+            eccStrength.dispatchEvent(new Event('input'));
+            noiseThreshold.dispatchEvent(new Event('input'));
+
+            // ---------- 键盘快捷键 ----------
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    if (!state.sending) sendBtn.click();
+                }
+            });
+
+            log('🎵 音波通信已就绪 — 输入文字或选择图片，点击"发送"', 'info');
+            log('💡 提示: 使用麦克风接收时，请确保发送端在播放', 'info');
+
+            // 额外: 如果浏览器不支持AudioContext
+            if (!window.AudioContext && !window.webkitAudioContext) {
+                log('⚠️ 浏览器不支持 Web Audio API', 'err');
+            }
+
+        })();
+    </script>
 </body>
 </html>
